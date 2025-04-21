@@ -3,7 +3,7 @@ import Link from "next/link";
 
 import { useAllEvents } from "@/hooks/useEvents";
 
-function CalendarContent() {
+const IndexPage = () => {
   const { data: eventsByDate } = useAllEvents();
 
   return (
@@ -42,16 +42,6 @@ function CalendarContent() {
       ))}
     </div>
   );
-}
+};
 
-export default function IndexPage() {
-  return (
-    <Suspense
-      fallback={
-        <div className="container mx-auto py-8">Loading calendar...</div>
-      }
-    >
-      <CalendarContent />
-    </Suspense>
-  );
-}
+export default IndexPage;

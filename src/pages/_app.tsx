@@ -5,7 +5,7 @@ import { ReactQueryProvider } from "@/providers/ReactQueryProvider";
 
 import "../styles/globals.css";
 
-function MyApp({ Component, pageProps }: AppProps) {
+const MyApp = ({ Component, pageProps }: AppProps) => {
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
@@ -37,6 +37,6 @@ function MyApp({ Component, pageProps }: AppProps) {
       <Component {...pageProps} />
     </ReactQueryProvider>
   );
-}
+};
 
 export default MyApp;

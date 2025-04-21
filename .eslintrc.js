@@ -45,7 +45,7 @@ module.exports = {
       },
     },
     {
-      files: ["pages/**/*.tsx", "app/**/*.tsx", "src/pages/**/*.tsx", "src/app/**/*.tsx"],
+      files: ["src/pages/**/*.tsx", "src/app/**/*.tsx"],
       rules: {
         "import/no-default-export": "off"
       }
@@ -262,6 +262,13 @@ module.exports = {
     "@next/next/no-sync-scripts": "error",
     "@next/next/no-typos": "error",
     "@next/next/no-unwanted-polyfillio": "error",
+    "react/function-component-definition": [
+      "error",
+      {
+        namedComponents: "arrow-function",
+        unnamedComponents: "arrow-function",
+      },
+    ],
   },
   settings: {
     react: {
