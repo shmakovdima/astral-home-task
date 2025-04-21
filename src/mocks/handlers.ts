@@ -15,14 +15,16 @@ const events: EventsByDate = {
       title: "Coffee with Alex",
       description:
         "Meet with Alex to brainstorm ideas for the upcoming product launch.",
-      imageUrl: "https://fastly.picsum.photos/id/312/1920/1080.jpg",
+      imageUrl:
+        "https://fastly.picsum.photos/id/312/1920/1080.jpg?hmac=OD_fP9MUQN7uJ8NBR7tlii78qwHPUROGgohG4w16Kjw",
       timestamp: new Date(dayAfterTomorrow.setHours(9, 0, 0, 0)).toISOString(),
     },
     {
       id: "event-2",
       title: "Team Standup",
       description: "Weekly standup meeting with the dev team.",
-      imageUrl: "http://fastly.picsum.photos/id/737/1920/1080.jpg",
+      imageUrl:
+        "http://fastly.picsum.photos/id/737/1920/1080.jpg?hmac=aFzER8Y4wcWTrXVx2wVKSj10IqnygaF33gESj0WGDwI",
       timestamp: new Date(dayAfterTomorrow.setHours(14, 0, 0, 0)).toISOString(),
     },
   ],
@@ -32,14 +34,16 @@ const events: EventsByDate = {
       title: "Yoga Session",
       description:
         "Join for a relaxing yoga session to reduce stress and improve mindfulness.",
-      imageUrl: "https://fastly.picsum.photos/id/392/1920/1080.jpg",
+      imageUrl:
+        "https://fastly.picsum.photos/id/392/1920/1080.jpg?hmac=Fvbf7C1Rcozg8EccwYPqsGkk_o6Bld2GQRDPZKWpd7g",
       timestamp: new Date(tomorrow.setHours(12, 0, 0, 0)).toISOString(),
     },
     {
       id: "event-4",
       title: "Product Demo",
       description: "Demo of UI improvements and performance optimizations.",
-      imageUrl: "https://fastly.picsum.photos/id/249/1920/1080.jpg",
+      imageUrl:
+        "https://fastly.picsum.photos/id/249/1920/1080.jpg?hmac=cPMNdgGXRh6T_KhRMuaQjRtAx5cWRraELjtL2MHTfYs",
       timestamp: new Date(tomorrow.setHours(15, 30, 0, 0)).toISOString(),
     },
   ],
@@ -48,7 +52,8 @@ const events: EventsByDate = {
       id: "event-5",
       title: "Client Meeting",
       description: "Review project progress and timeline adjustments.",
-      imageUrl: "https://fastly.picsum.photos/id/908/1920/1080.jpg",
+      imageUrl:
+        "https://fastly.picsum.photos/id/908/1920/1080.jpg?hmac=MeG_oA1s75hHAL_4JzCioh6--zyFTWSCTxOhe8ugvXo",
       timestamp: new Date(today.setHours(11, 30, 0, 0)).toISOString(),
     },
   ],

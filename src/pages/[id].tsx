@@ -1,9 +1,10 @@
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEvent } from "@/hooks/useEvents";
-import { EventSkeleton } from "@/components/EventSkeleton";
+
 import { ErrorState } from "@/components/ErrorState";
+import { EventSkeleton } from "@/components/EventSkeleton";
+import { useEvent } from "@/hooks/useEvents";
 
 export default function EventDetails() {
   const router = useRouter();
@@ -70,10 +71,10 @@ export default function EventDetails() {
         <div className="relative w-full h-64">
           <Image
             alt={event.title}
-            src={event.imageUrl}
-            fill
             className="object-cover"
+            fill
             priority
+            src={event.imageUrl}
           />
         </div>
 
