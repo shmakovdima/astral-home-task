@@ -1,36 +1,24 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import type { AppProps } from 'next/app';
-import { useState } from 'react';
-import '../styles/globals.css';
+import type { AppProps } from "next/app";
+import { ReactQueryProvider } from "@/providers/ReactQueryProvider";
 
-if (process.env.NODE_ENV === 'development') {
-  import('../mocks/browser').then(({ worker }) => {
+import "../styles/globals.css";
+
+if (process.env.NODE_ENV === "development") {
+  import("../mocks/browser").then(({ worker }) => {
     worker.start({
-      onUnhandledRequest: 'bypass',
+      onUnhandledRequest: "bypass",
       serviceWorker: {
-        url: '/mockServiceWorker.js'
+        url: "/mockServiceWorker.js",
       },
-      quiet: true
+      quiet: true,
     });
   });
 }
 
 export default function MyApp({ Component, pageProps }: AppProps) {
-  const [queryClient] = useState(() => new QueryClient({
-    defaultOptions: {
-      queries: {
-        staleTime: 60 * 1000,
-        refetchOnWindowFocus: false,
-        retry: 1,
-      },
-    },
-  }));
-
   return (
-    <QueryClientProvider client={queryClient}>
+    <ReactQueryProvider>
       <Component {...pageProps} />
-      <ReactQueryDevtools initialIsOpen={false} />
-    </QueryClientProvider>
+    </ReactQueryProvider>
   );
 }

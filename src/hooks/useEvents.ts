@@ -1,25 +1,23 @@
-import { useQuery } from '@tanstack/react-query';
-import axiosInstance from '@/lib/axios';
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/lib/axios";
 
-import { Event, EventsByDate } from '@/models';
+import { type Event, type EventsByDate } from "@/models";
 
-export const useAllEvents = () => {
-  return useQuery({
-    queryKey: ['events'],
+export const useAllEvents = () =>
+  useQuery({
+    queryKey: ["events"],
     queryFn: async (): Promise<EventsByDate> => {
-      const { data } = await axiosInstance.get('/api/events');
+      const { data } = await api.get("/api/events");
       return data;
-    }
+    },
   });
-};
 
-export const useEvent = (id: string) => {
-  return useQuery({
-    queryKey: ['event', id],
+export const useEvent = (id: string) =>
+  useQuery({
+    queryKey: ["event", id],
     queryFn: async (): Promise<Event> => {
-      const { data } = await axiosInstance.get(`/api/event/${id}`);
+      const { data } = await api.get(`/api/event/${id}`);
       return data;
     },
     enabled: !!id,
   });
-};
