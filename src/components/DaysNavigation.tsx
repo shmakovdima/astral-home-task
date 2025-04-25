@@ -1,5 +1,5 @@
-import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 
 import { cnTwMerge } from "@/helpers/cnTwMerge";
 
@@ -16,7 +16,6 @@ type Props = {
 
 export const DaysNavigation = ({ activeDay, setActiveDay }: Props) => {
   const [days, setDays] = useState<DayInfo[]>([]);
-  const [selectedDay, setSelectedDay] = useState<number>(6);
   const [isAnimating, setIsAnimating] = useState(false);
 
   const formatDate = (date: Date): string => {
@@ -41,7 +40,6 @@ export const DaysNavigation = ({ activeDay, setActiveDay }: Props) => {
     }) satisfies DayInfo[];
 
     setDays(weekDays);
-    setSelectedDay(6); // Always set selected day to center
   }, [activeDay]);
 
   const handleDayClick = (index: number) => {
@@ -50,8 +48,7 @@ export const DaysNavigation = ({ activeDay, setActiveDay }: Props) => {
     setIsAnimating(true);
     const selectedDate = days[index].date;
     setActiveDay(formatDate(selectedDate));
-    
-    // Reset animation state after a short delay
+
     setTimeout(() => {
       setIsAnimating(false);
     }, 300);
@@ -91,7 +88,7 @@ export const DaysNavigation = ({ activeDay, setActiveDay }: Props) => {
           onAnimationComplete={() => setIsAnimating(false)}
           variants={containerVariants}
         >
-          <AnimatePresence>
+          <AnimatePresence mode="popLayout">
             {days.map((day, index) => {
               const isHidden = Math.abs(index - 6) > 3;
               if (isHidden) return null;
@@ -106,11 +103,13 @@ export const DaysNavigation = ({ activeDay, setActiveDay }: Props) => {
                   )}
                   key={day.date.toISOString()}
                   layout
+                  layoutId={`day-${day.date.toISOString()}`}
                   onClick={() => handleDayClick(index)}
                   transition={{
-                    damping: 30,
-                    stiffness: 500,
                     type: "spring",
+                    stiffness: 500,
+                    damping: 30,
+                    mass: 0.5,
                   }}
                   variants={dayVariants}
                 >

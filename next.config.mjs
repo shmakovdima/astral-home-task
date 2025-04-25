@@ -1,5 +1,3 @@
-import type { NextConfig } from "next";
-
 const nextConfig = {
   reactStrictMode: true,
   images: {
@@ -35,6 +33,6 @@ const nextConfig = {
 
     return config;
   },
-} satisfies NextConfig;
+};
 
 export default nextConfig;

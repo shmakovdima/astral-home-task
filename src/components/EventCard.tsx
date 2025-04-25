@@ -5,7 +5,7 @@ import { type Event } from "@/models";
 
 export const EventCard = memo(
   ({ title, imageUrl, timestamp, description }: Event) => (
-    <div className="rounded-lg shadow-sm hover:shadow-md transition-all">
+    <div className="rounded-lg shadow-sm hover:shadow-md transition-all event-card">
       <div className="flex flex-col gap-4">
         <div className="relative w-full h-32 rounded-md overflow-hidden">
           <Image

@@ -4,6 +4,7 @@ export type Event = {
   description: string;
   imageUrl: string;
   timestamp: string;
+  className?: string;
 };
 
 export type EventsByDate = {

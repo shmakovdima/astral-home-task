@@ -2,7 +2,19 @@ import { useQuery } from "@tanstack/react-query";
 
 import { api } from "@/lib/axios";
 import { eventsResponseSchema } from "@/lib/validations";
-import { type EventsByDate } from "@/models";
+import { type Event, type EventsByDate } from "@/models";
+
+const sortEvents = (events: Event[]): Event[] =>
+  [...events].sort((a, b) => {
+    const timeA = new Date(a.timestamp).getTime();
+    const timeB = new Date(b.timestamp).getTime();
+
+    if (timeA !== timeB) {
+      return timeA - timeB;
+    }
+
+    return a.title.localeCompare(b.title);
+  });
 
 export const useAllEvents = () =>
   useQuery({
@@ -14,8 +26,16 @@ export const useAllEvents = () =>
 
       try {
         const parsedData = eventsResponseSchema.parse(response.data);
-        console.log("Parsed data:", parsedData);
-        return parsedData;
+
+        const sortedData: EventsByDate = Object.fromEntries(
+          Object.entries(parsedData).map(([date, events]) => [
+            date,
+            sortEvents(events),
+          ]),
+        );
+
+        console.log("Sorted data:", sortedData);
+        return sortedData;
       } catch (error) {
         console.error("Validation error:", error);
         throw error;

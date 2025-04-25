@@ -21,7 +21,6 @@ export const WeeklyCalendarView = () => {
     setCurrentWeek(weekDates);
   }, []);
 
-
   const isToday = (date: Date) => {
     const today = new Date();
     return (
