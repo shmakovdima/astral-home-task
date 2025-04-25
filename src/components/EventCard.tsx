@@ -5,8 +5,8 @@ import Image from "next/image";
 import { type Event } from "@/models";
 
 type EventCardProps = Event & {
-  onDayChange: (daysToMove: number) => void;
   onDragStart?: () => void;
+  onDragEnd: (daysToMove: number) => void;
 };
 
 type DropResult = {
@@ -20,8 +20,8 @@ export const EventCard = memo(
     imageUrl,
     timestamp,
     description,
-    onDayChange,
     onDragStart,
+    onDragEnd,
   }: EventCardProps) => {
     const [isLoading, setIsLoading] = useState(true);
 
@@ -42,9 +42,8 @@ export const EventCard = memo(
       }),
       end: (item, monitor) => {
         const dropResult = monitor.getDropResult<DropResult>();
-
         if (dropResult) {
-          onDayChange(dropResult.daysToMove);
+          onDragEnd(dropResult.daysToMove);
         }
       },
     }));
