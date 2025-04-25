@@ -1,0 +1,25 @@
+import { type ReactNode } from "react";
+import { DndProvider } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
+import { TouchBackend } from "react-dnd-touch-backend";
+
+type DnDProviderProps = {
+  children: ReactNode;
+};
+
+export const DnDProvider = ({ children }: DnDProviderProps) => {
+  const isTouchDevice = typeof window !== "undefined" && "ontouchstart" in window;
+
+  return (
+    <DndProvider
+      backend={isTouchDevice ? TouchBackend : HTML5Backend}
+      options={{
+        enableMouseEvents: true,
+        enableTouchEvents: true,
+        enableKeyboardEvents: true,
+      }}
+    >
+      {children}
+    </DndProvider>
+  );
+}; 

@@ -2,6 +2,7 @@ import { useLayoutEffect, useState } from "react";
 import type { AppProps } from "next/app";
 import { Roboto } from "next/font/google";
 
+import { DnDProvider } from "@/providers/DnDProvider";
 import { ReactQueryProvider } from "@/providers/ReactQueryProvider";
 
 import "../styles/globals.css";
@@ -42,9 +43,11 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
 
   return (
     <ReactQueryProvider>
-      <div className={roboto.className}>
-        <Component {...pageProps} />
-      </div>
+      <DnDProvider>
+        <div className={roboto.className}>
+          <Component {...pageProps} />
+        </div>
+      </DnDProvider>
     </ReactQueryProvider>
   );
 };

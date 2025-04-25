@@ -1,11 +1,16 @@
 import { memo, useMemo, useState } from "react";
+import { useDrag } from "react-dnd";
 import Image from "next/image";
 import { format, parseISO } from "date-fns";
 
 import { type Event } from "@/models";
 
+type EventCardProps = Event & {
+  onDayChange: (daysToMove: number) => void;
+};
+
 export const EventCard = memo(
-  ({ title, imageUrl, timestamp, description }: Event) => {
+  ({ id, title, imageUrl, timestamp, description, onDayChange }: EventCardProps) => {
     const [isLoading, setIsLoading] = useState(true);
 
     const eventTime = useMemo(() => {
@@ -13,8 +18,27 @@ export const EventCard = memo(
       return format(date, "hh:mm a");
     }, [timestamp]);
 
+    const [{ isDragging }, drag] = useDrag(() => ({
+      type: "event",
+      item: { id },
+      collect: (monitor) => ({
+        isDragging: !!monitor.isDragging(),
+      }),
+      end: (item, monitor) => {
+        const dropResult = monitor.getDropResult();
+        if (dropResult) {
+          onDayChange(dropResult.daysToMove);
+        }
+      },
+    }));
+
     return (
-      <div className="rounded-lg shadow-sm hover:shadow-md transition-all bg-white event-card">
+      <div
+        ref={drag}
+        className={`rounded-lg shadow-sm hover:shadow-md transition-all bg-white event-card cursor-move ${
+          isDragging ? "opacity-50" : ""
+        }`}
+      >
         <div className="flex flex-col gap-4">
           <div className="relative w-full h-32 rounded-md overflow-hidden">
             <div

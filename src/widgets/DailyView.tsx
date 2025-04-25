@@ -3,6 +3,7 @@ import { addDays, format, parseISO, subDays } from "date-fns";
 
 import { DateHeader } from "@/components/DateHeader";
 import { DaysNavigation } from "@/components/DaysNavigation";
+import { DayDropZone } from "@/components/DayDropZone";
 import { EventCard } from "@/components/EventCard";
 import { useAllEvents } from "@/hooks/useEvents";
 import { useSwipeNavigation } from "@/hooks/useSwipeNavigation";
@@ -37,6 +38,15 @@ export const DailyView = () => {
     onSwipe: handleSwipe,
   });
 
+  const handleDayChange = useCallback(
+    (daysToMove: number) => {
+      const currentDate = parseISO(activeDay);
+      const newDate = addDays(currentDate, daysToMove);
+      setActiveDay(format(newDate, "yyyy-MM-dd"));
+    },
+    [activeDay],
+  );
+
   return (
     <div className="overscroll-none touch-pan-y">
       <DaysNavigation activeDay={activeDay} setActiveDay={setActiveDay} />
@@ -50,7 +60,11 @@ export const DailyView = () => {
           {todayEvents.length > 0 ? (
             <div className="grid gap-4 pb-20">
               {todayEvents.map((event) => (
-                <EventCard {...event} className="event-card" key={event.id} />
+                <EventCard
+                  {...event}
+                  key={event.id}
+                  onDayChange={handleDayChange}
+                />
               ))}
             </div>
           ) : (
