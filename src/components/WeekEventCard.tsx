@@ -1,30 +1,20 @@
 import { memo, useMemo, useState } from "react";
-import { useDrag } from "react-dnd";
 import Image from "next/image";
 
 import { type Event } from "@/models";
 
-type EventCardProps = Event & {
-  onDragStart?: () => void;
-  onDragEnd: (daysToMove: number) => void;
-};
+type WeekEventCardProps = Event;
 
-type DropResult = {
-  daysToMove: number;
-};
-
-export const EventCard = memo(
+export const WeekEventCard = memo(
   ({
-    id,
+    // id,
     title,
     imageUrl,
     timestamp,
     description,
     // location,
     // duration,
-    onDragStart,
-    onDragEnd,
-  }: EventCardProps) => {
+  }: WeekEventCardProps) => {
     const [isLoading, setIsLoading] = useState(true);
 
     const eventTime = useMemo(() => {
@@ -34,33 +24,12 @@ export const EventCard = memo(
       return `${formattedHours}:${minutes} ${hoursNum >= 12 ? "PM" : "AM"}`;
     }, [timestamp]);
 
-    const [{ isDragging }, drag] = useDrag(() => ({
-      type: "event",
-      item: () => {
-        onDragStart?.();
-        return { id };
-      },
-      collect: (monitor) => ({
-        isDragging: !!monitor.isDragging(),
-      }),
-      end: (_, monitor) => {
-        const dropResult = monitor.getDropResult<DropResult>();
-
-        if (dropResult) {
-          onDragEnd(dropResult.daysToMove);
-        }
-      },
-    }));
-
     return (
       <div
-        className={`rounded-lg shadow-sm hover:shadow-md transition-all bg-white event-card ${
-          isDragging ? "opacity-50 cursor-grabbing" : ""
-        }`}
+        className="rounded-lg shadow-sm hover:shadow-md transition-all bg-white event-card"
         onTouchEnd={(e) => e.stopPropagation()}
         onTouchMove={(e) => e.stopPropagation()}
         onTouchStart={(e) => e.stopPropagation()}
-        ref={drag as unknown as React.RefObject<HTMLDivElement>}
       >
         <div className="flex flex-col gap-4 w-full">
           <div className="relative w-full h-32 rounded-md overflow-hidden">

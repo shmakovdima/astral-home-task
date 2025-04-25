@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { addDays, format, isToday, startOfWeek } from "date-fns";
 
-import { EventCard } from "@/components/EventCard";
+import { WeekEventCard } from "@/components/WeekEventCard";
 import { useAllEvents } from "@/hooks/useEvents";
 
 export const WeeklyCalendarView = () => {
@@ -39,7 +39,7 @@ export const WeeklyCalendarView = () => {
               key={format(date, "yyyy-MM-dd")}
             >
               {events.map((event) => (
-                <EventCard {...event} key={event.id} />
+                <WeekEventCard {...event} key={event.id} />
               ))}
             </div>
           );

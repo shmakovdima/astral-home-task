@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState, useEffect } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useDrop } from "react-dnd";
 
 type DayDropZoneProps = {
@@ -20,20 +20,23 @@ export const DayDropZone = ({
   const dropTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Cleanup function to prevent stuck states
-  useEffect(() => {
-    return () => {
+  useEffect(
+    () => () => {
       if (scrollIntervalRef.current) {
         clearInterval(scrollIntervalRef.current);
       }
+
       if (dropTimeoutRef.current) {
         clearTimeout(dropTimeoutRef.current);
       }
+
       isDraggingRef.current = false;
       lastDirectionRef.current = null;
       setLastDragPosition(null);
       daysMovedRef.current = 0;
-    };
-  }, []);
+    },
+    [],
+  );
 
   const [{ isOver }, drop] = useDrop(() => ({
     accept: "event",
@@ -52,14 +55,17 @@ export const DayDropZone = ({
     isDraggingRef.current = false;
     lastDirectionRef.current = null;
     setLastDragPosition(null);
+
     if (scrollIntervalRef.current) {
       clearInterval(scrollIntervalRef.current);
       scrollIntervalRef.current = null;
     }
+
     if (dropTimeoutRef.current) {
       clearTimeout(dropTimeoutRef.current);
       dropTimeoutRef.current = null;
     }
+
     daysMovedRef.current = 0;
   }, []);
 
@@ -106,9 +112,10 @@ export const DayDropZone = ({
 
       if (lastDragPosition !== null) {
         const movement = e.clientX - lastDragPosition;
+
         if (Math.abs(movement) > 5) {
           let direction: "left" | "right" | null = null;
-          
+
           if (x < width * 0.2 || movement < 0) {
             direction = "left";
           } else if (x > width * 0.8 || movement > 0) {
@@ -135,12 +142,12 @@ export const DayDropZone = ({
     (e: React.DragEvent) => {
       e.preventDefault();
       e.stopPropagation();
-      
+
       // Add a small delay before cleanup to prevent stuck states
       if (dropTimeoutRef.current) {
         clearTimeout(dropTimeoutRef.current);
       }
-      
+
       dropTimeoutRef.current = setTimeout(() => {
         cleanupDragState();
       }, 100);
@@ -154,8 +161,8 @@ export const DayDropZone = ({
         isOver ? "bg-blue-50" : ""
       }`}
       onClick={(e) => e.stopPropagation()}
-      onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
+      onDragOver={handleDragOver}
       onTouchEnd={(e) => e.stopPropagation()}
       onTouchMove={(e) => e.stopPropagation()}
       onTouchStart={(e) => e.stopPropagation()}

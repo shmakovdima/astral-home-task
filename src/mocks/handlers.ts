@@ -50,7 +50,6 @@ const events: EventsByDate = {
     },
   ],
   [format(today, "yyyy-MM-dd")]: [
-    
     {
       id: "223e4567-e89b-12d3-a456-426614174001",
       title: "Team Standup",
