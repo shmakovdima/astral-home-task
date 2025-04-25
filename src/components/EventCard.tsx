@@ -1,31 +1,48 @@
 import { memo, useMemo, useState } from "react";
 import { useDrag } from "react-dnd";
 import Image from "next/image";
-import { format, parseISO } from "date-fns";
 
 import { type Event } from "@/models";
 
 type EventCardProps = Event & {
   onDayChange: (daysToMove: number) => void;
+  onDragStart?: () => void;
+};
+
+type DropResult = {
+  daysToMove: number;
 };
 
 export const EventCard = memo(
-  ({ id, title, imageUrl, timestamp, description, onDayChange }: EventCardProps) => {
+  ({
+    id,
+    title,
+    imageUrl,
+    timestamp,
+    description,
+    onDayChange,
+    onDragStart,
+  }: EventCardProps) => {
     const [isLoading, setIsLoading] = useState(true);
 
     const eventTime = useMemo(() => {
-      const date = parseISO(timestamp);
-      return format(date, "hh:mm a");
+      const time = timestamp.split("T")[1].split(":")[0];
+      const hours = parseInt(time, 10);
+      return `${hours}:00 ${hours >= 12 ? "PM" : "AM"}`;
     }, [timestamp]);
 
     const [{ isDragging }, drag] = useDrag(() => ({
       type: "event",
-      item: { id },
+      item: () => {
+        onDragStart?.();
+        return { id };
+      },
       collect: (monitor) => ({
         isDragging: !!monitor.isDragging(),
       }),
       end: (item, monitor) => {
-        const dropResult = monitor.getDropResult();
+        const dropResult = monitor.getDropResult<DropResult>();
+
         if (dropResult) {
           onDayChange(dropResult.daysToMove);
         }
@@ -34,10 +51,13 @@ export const EventCard = memo(
 
     return (
       <div
-        ref={drag}
-        className={`rounded-lg shadow-sm hover:shadow-md transition-all bg-white event-card cursor-move ${
-          isDragging ? "opacity-50" : ""
+        className={`rounded-lg shadow-sm hover:shadow-md transition-all bg-white event-card cursor-grab ${
+          isDragging ? "opacity-50 cursor-grabbing" : ""
         }`}
+        onTouchEnd={(e) => e.stopPropagation()}
+        onTouchMove={(e) => e.stopPropagation()}
+        onTouchStart={(e) => e.stopPropagation()}
+        ref={drag as unknown as React.RefObject<HTMLDivElement>}
       >
         <div className="flex flex-col gap-4">
           <div className="relative w-full h-32 rounded-md overflow-hidden">
@@ -65,9 +85,9 @@ export const EventCard = memo(
           </div>
           <div className="flex-1 p-4">
             <div className="flex justify-between items-start">
-              <h3 className="text-lg text-gray-700 font-bold">{title}</h3>
+              <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
             </div>
-            <p className="mt-2 text-gray-500">{description}</p>
+            <p className="mt-2 text-sm text-gray-600">{description}</p>
           </div>
         </div>
       </div>

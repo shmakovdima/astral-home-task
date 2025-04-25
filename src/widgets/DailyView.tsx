@@ -1,79 +1,90 @@
-import { useCallback, useMemo, useState } from "react";
-import { addDays, format, parseISO, subDays } from "date-fns";
+import { useState } from "react";
+import { format } from "date-fns";
 
+import { DayDropZone } from "@/components/DayDropZone";
 import { DateHeader } from "@/components/DateHeader";
 import { DaysNavigation } from "@/components/DaysNavigation";
-import { DayDropZone } from "@/components/DayDropZone";
 import { EventCard } from "@/components/EventCard";
 import { useAllEvents } from "@/hooks/useEvents";
-import { useSwipeNavigation } from "@/hooks/useSwipeNavigation";
+import { useUpdateEventDate } from "@/hooks/useUpdateEventDate";
+import type { Event } from "@/models";
 
 export const DailyView = () => {
-  const [activeDay, setActiveDay] = useState<string>(
-    format(new Date(), "yyyy-MM-dd"),
-  );
-
+  const [activeDay, setActiveDay] = useState(format(new Date(), "yyyy-MM-dd"));
+  const [draggedEventId, setDraggedEventId] = useState<string | null>(null);
   const { data: eventsByDate } = useAllEvents();
+  const { mutate: updateEventDate } = useUpdateEventDate();
 
-  const todayEvents = useMemo(
-    () => eventsByDate?.[activeDay] || [],
-    [activeDay, eventsByDate],
-  );
+  const handleDayChange = (daysToMove: number) => {
+    try {
+      const currentDate = new Date(activeDay);
 
-  const handleSwipe = useCallback(
-    (direction: "left" | "right") => {
-      const currentDate = parseISO(activeDay);
+      if (isNaN(currentDate.getTime())) {
+        throw new Error("Invalid date");
+      }
 
-      const newDate =
-        direction === "left"
-          ? addDays(currentDate, 1)
-          : subDays(currentDate, 1);
+      currentDate.setDate(currentDate.getDate() + daysToMove);
+      setActiveDay(format(currentDate, "yyyy-MM-dd"));
+    } catch (error) {
+      console.error("Error changing day:", error);
+    }
+  };
 
-      setActiveDay(format(newDate, "yyyy-MM-dd"));
-    },
-    [activeDay],
-  );
+  const handleEventDrop = (eventId: string) => {
+    try {
+      const currentDate = new Date(activeDay);
 
-  const { handleTouchStart, handleTouchEnd } = useSwipeNavigation({
-    onSwipe: handleSwipe,
-  });
+      if (isNaN(currentDate.getTime())) {
+        throw new Error("Invalid date");
+      }
 
-  const handleDayChange = useCallback(
-    (daysToMove: number) => {
-      const currentDate = parseISO(activeDay);
-      const newDate = addDays(currentDate, daysToMove);
-      setActiveDay(format(newDate, "yyyy-MM-dd"));
-    },
-    [activeDay],
-  );
+      currentDate.setHours(12, 0, 0, 0);
+      updateEventDate({ id: eventId, timestamp: currentDate.toISOString() });
+    } catch (error) {
+      console.error("Error updating event date:", error);
+    }
+  };
+
+  const dayEvents = eventsByDate?.[activeDay] || [];
 
   return (
-    <div className="overscroll-none touch-pan-y">
+    <div className="flex flex-col gap-4">
       <DaysNavigation activeDay={activeDay} setActiveDay={setActiveDay} />
-      <div
-        className="container mx-auto py-4 px-4"
-        onTouchEnd={handleTouchEnd}
-        onTouchStart={handleTouchStart}
-      >
-        <DateHeader date={activeDay} />
-        <div className="mt-6">
-          {todayEvents.length > 0 ? (
-            <div className="grid gap-4 pb-20">
-              {todayEvents.map((event) => (
-                <EventCard
-                  {...event}
-                  key={event.id}
-                  onDayChange={handleDayChange}
-                />
-              ))}
-            </div>
-          ) : (
-            <p className="text-gray-500 text-center py-8">
-              No events scheduled for today
-            </p>
-          )}
-        </div>
+      <div className="flex flex-col gap-4 p-4">
+      <DateHeader date={activeDay} />
+      <div className="grid grid-cols-1 gap-4">
+        {dayEvents.length > 0 ? (
+          dayEvents.map((event: Event) => (
+            <EventCard
+              key={event.id}
+              {...event}
+              onDayChange={handleDayChange}
+              onDragStart={() => setDraggedEventId(event.id)}
+            />
+          ))
+        ) : (
+          <div className="text-center text-gray-500 py-8">
+            No events scheduled for today
+          </div>
+        )}
       </div>
+      <DayDropZone
+        onDayChange={handleDayChange}
+        onDrop={() => {
+          if (draggedEventId) {
+            handleEventDrop(draggedEventId);
+            setDraggedEventId(null);
+          }
+        }}
+      >
+        {draggedEventId && (
+          <div className="text-center text-gray-500 py-8">
+            Drop here to move event
+          </div>
+        )}
+      </DayDropZone>
+      </div>
+     
     </div>
   );
 };

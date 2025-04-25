@@ -8,7 +8,8 @@ type DnDProviderProps = {
 };
 
 export const DnDProvider = ({ children }: DnDProviderProps) => {
-  const isTouchDevice = typeof window !== "undefined" && "ontouchstart" in window;
+  const isTouchDevice =
+    typeof window !== "undefined" && "ontouchstart" in window;
 
   return (
     <DndProvider
@@ -17,9 +18,17 @@ export const DnDProvider = ({ children }: DnDProviderProps) => {
         enableMouseEvents: true,
         enableTouchEvents: true,
         enableKeyboardEvents: true,
+        delayTouchStart: 0,
+        delayMouseStart: 0,
+        touchSlop: 0,
+        ignoreContextMenu: true,
+        scrollAngleRanges: [
+          { start: 30, end: 150 },
+          { start: 210, end: 330 },
+        ],
       }}
     >
       {children}
     </DndProvider>
   );
-}; 
+};

@@ -1,4 +1,4 @@
-import { addDays, format, parseISO } from "date-fns";
+import { addDays, format } from "date-fns";
 import { http, HttpResponse } from "msw";
 
 import { type EventsByDate } from "../models";
@@ -7,10 +7,10 @@ const today = new Date();
 const tomorrow = addDays(today, 1);
 const dayAfterTomorrow = addDays(today, 2);
 
-const createTimestamp = (date: Date, hours: number, minutes = 0) => {
-  const newDate = new Date(date);
-  newDate.setHours(hours, minutes, 0, 0);
-  return newDate.toISOString();
+const createEvent = (date: Date, hours: number, minutes: number) => {
+  const eventDate = new Date(date);
+  eventDate.setHours(hours, minutes, 0, 0);
+  return eventDate.toISOString();
 };
 
 const events: EventsByDate = {
@@ -21,7 +21,7 @@ const events: EventsByDate = {
       description: "Review project progress and timeline adjustments.",
       imageUrl:
         "https://fastly.picsum.photos/id/908/1920/1080.jpg?hmac=MeG_oA1s75hHAL_4JzCioh6--zyFTWSCTxOhe8ugvXo",
-      timestamp: createTimestamp(dayAfterTomorrow, 11, 30),
+      timestamp: createEvent(dayAfterTomorrow, 11, 30),
       duration: 60,
       location: "Conference Room A",
     },
@@ -34,7 +34,7 @@ const events: EventsByDate = {
         "Join for a relaxing yoga session to reduce stress and improve mindfulness.",
       imageUrl:
         "https://fastly.picsum.photos/id/392/1920/1080.jpg?hmac=Fvbf7C1Rcozg8EccwYPqsGkk_o6Bld2GQRDPZKWpd7g",
-      timestamp: createTimestamp(tomorrow, 12),
+      timestamp: createEvent(tomorrow, 12, 0),
       duration: 45,
       location: "Main Hall",
     },
@@ -44,7 +44,7 @@ const events: EventsByDate = {
       description: "Demo of UI improvements and performance optimizations.",
       imageUrl:
         "https://fastly.picsum.photos/id/249/1920/1080.jpg?hmac=cPMNdgGXRh6T_KhRMuaQjRtAx5cWRraELjtL2MHTfYs",
-      timestamp: createTimestamp(tomorrow, 15, 30),
+      timestamp: createEvent(tomorrow, 15, 30),
       duration: 90,
       location: "Training Room",
     },
@@ -57,7 +57,7 @@ const events: EventsByDate = {
         "Meet with Alex to brainstorm ideas for the upcoming product launch.",
       imageUrl:
         "https://fastly.picsum.photos/id/312/1920/1080.jpg?hmac=OD_fP9MUQN7uJ8NBR7tlii78qwHPUROGgohG4w16Kjw",
-      timestamp: createTimestamp(today, 9),
+      timestamp: createEvent(today, 9, 0),
       duration: 30,
       location: "Cafeteria",
     },
@@ -67,7 +67,7 @@ const events: EventsByDate = {
       description: "Weekly standup meeting with the dev team.",
       imageUrl:
         "http://fastly.picsum.photos/id/737/1920/1080.jpg?hmac=aFzER8Y4wcWTrXVx2wVKSj10IqnygaF33gESj0WGDwI",
-      timestamp: createTimestamp(today, 14),
+      timestamp: createEvent(today, 14, 0),
       duration: 45,
       location: "Meeting Room B",
     },
@@ -113,7 +113,7 @@ export const handlers = [
     }
 
     let updatedEvent = null;
-    const newDate = format(parseISO(timestamp), "yyyy-MM-dd");
+    const newDate = timestamp.split("T")[0];
 
     for (const date in events) {
       const eventIndex = events[date].findIndex((event) => event.id === id);

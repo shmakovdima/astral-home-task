@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { addDays, format, startOfDay } from "date-fns";
 import { AnimatePresence, motion } from "framer-motion";
 
-import { DayDropZone } from "./DayDropZone";
 import { cnTwMerge } from "@/helpers/cnTwMerge";
 
 type DayInfo = {
@@ -89,35 +88,29 @@ export const DaysNavigation = ({ activeDay, setActiveDay }: Props) => {
               const isHidden = Math.abs(index - 6) > 3;
               if (isHidden) return null;
 
-              const daysToMove = index - 6;
-
               return (
-                <DayDropZone
-                  daysToMove={daysToMove}
-                  key={day.date.toISOString()}
+                <motion.div
+                  className={cnTwMerge(
+                    "flex flex-col items-center justify-center transition-colors duration-200 cursor-pointer py-2 px-3 rounded-lg w-[calc(100%/7)] min-w-0 h-16",
+                    index === 6
+                      ? "bg-gradient-to-br from-indigo-600 to-violet-600"
+                      : "bg-gray-100/10 hover:bg-indigo-600/10",
+                  )}
+                  key={formatDate(day.date)}
+                  layout
+                  layoutId={`day-${formatDate(day.date)}`}
+                  onClick={() => handleDayClick(index)}
+                  transition={{
+                    type: "spring",
+                    stiffness: 500,
+                    damping: 30,
+                    mass: 0.5,
+                  }}
+                  variants={dayVariants}
                 >
-                  <motion.div
-                    className={cnTwMerge(
-                      "flex flex-col items-center transition-colors duration-200 cursor-pointer p-2 rounded-lg flex-1",
-                      index === 6
-                        ? "bg-gradient-to-br from-indigo-600 to-violet-600"
-                        : "bg-gray-100/10 hover:bg-indigo-600/10",
-                    )}
-                    layout
-                    layoutId={`day-${day.date.toISOString()}`}
-                    onClick={() => handleDayClick(index)}
-                    transition={{
-                      type: "spring",
-                      stiffness: 500,
-                      damping: 30,
-                      mass: 0.5,
-                    }}
-                    variants={dayVariants}
-                  >
-                    <span className="text-sm">{day.name}</span>
-                    <span className="text-xl font-bold mt-1">{day.number}</span>
-                  </motion.div>
-                </DayDropZone>
+                  <span className="text-sm">{day.name}</span>
+                  <span className="text-xl font-bold mt-1">{day.number}</span>
+                </motion.div>
               );
             })}
           </AnimatePresence>
