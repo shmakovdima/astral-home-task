@@ -15,7 +15,7 @@ export const useUpdateEventDate = () => {
       timestamp: string;
     }) => {
       const validatedData = patchEventDateSchema.parse({ timestamp });
-      const { data } = await api.patch(`/api/event/${id}`, validatedData);
+      const { data } = await api.patch(`/api/events/${id}`, validatedData);
       return data;
     },
     onSuccess: () => {

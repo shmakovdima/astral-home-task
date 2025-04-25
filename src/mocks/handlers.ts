@@ -9,8 +9,7 @@ const dayAfterTomorrow = addDays(today, 2);
 
 const createEvent = (date: Date, hours: number, minutes: number) => {
   const eventDate = new Date(date);
-  eventDate.setHours(hours, minutes, 0, 0);
-  
+  eventDate.setUTCHours(hours, minutes, 0, 0);
   return eventDate.toISOString();
 };
 
@@ -51,6 +50,17 @@ const events: EventsByDate = {
     },
   ],
   [format(today, "yyyy-MM-dd")]: [
+    
+    {
+      id: "223e4567-e89b-12d3-a456-426614174001",
+      title: "Team Standup",
+      description: "Weekly standup meeting with the dev team.",
+      imageUrl:
+        "http://fastly.picsum.photos/id/737/1920/1080.jpg?hmac=aFzER8Y4wcWTrXVx2wVKSj10IqnygaF33gESj0WGDwI",
+      timestamp: createEvent(today, 14, 0),
+      duration: 45,
+      location: "Meeting Room B",
+    },
     {
       id: "123e4567-e89b-12d3-a456-426614174000",
       title: "Coffee with Alex",
@@ -62,16 +72,6 @@ const events: EventsByDate = {
       duration: 30,
       location: "Cafeteria",
     },
-    {
-      id: "223e4567-e89b-12d3-a456-426614174001",
-      title: "Team Standup",
-      description: "Weekly standup meeting with the dev team.",
-      imageUrl:
-        "http://fastly.picsum.photos/id/737/1920/1080.jpg?hmac=aFzER8Y4wcWTrXVx2wVKSj10IqnygaF33gESj0WGDwI",
-      timestamp: createEvent(today, 14, 0),
-      duration: 45,
-      location: "Meeting Room B",
-    },
   ],
 };
 
@@ -81,9 +81,9 @@ export const handlers = [
     return HttpResponse.json(events);
   }),
 
-  http.get("/api/event/:id", ({ params }) => {
+  http.get("/api/events/:id", ({ params }) => {
     const { id } = params;
-    console.log("Mock handler: GET /api/event/", id);
+    console.log("Mock handler: GET /api/events/", id);
 
     for (const date in events) {
       const event = events[date].find((event) => event.id === id);
@@ -99,9 +99,9 @@ export const handlers = [
     });
   }),
 
-  http.patch("/api/event/:id", async ({ params, request }) => {
+  http.patch("/api/events/:id", async ({ params, request }) => {
     const { id } = params;
-    console.log("Mock handler: PATCH /api/event/", id);
+    console.log("Mock handler: PATCH /api/events/", id);
 
     const body = (await request.json()) as { timestamp?: string };
     const { timestamp } = body;
@@ -114,7 +114,8 @@ export const handlers = [
     }
 
     let updatedEvent = null;
-    const newDate = timestamp.split("T")[0];
+    const newDate = new Date(timestamp);
+    const formattedDate = format(newDate, "yyyy-MM-dd");
 
     for (const date in events) {
       const eventIndex = events[date].findIndex((event) => event.id === id);
@@ -138,11 +139,11 @@ export const handlers = [
       });
     }
 
-    if (!events[newDate]) {
-      events[newDate] = [];
+    if (!events[formattedDate]) {
+      events[formattedDate] = [];
     }
 
-    events[newDate].push(updatedEvent);
+    events[formattedDate].push(updatedEvent);
 
     return HttpResponse.json(updatedEvent);
   }),
