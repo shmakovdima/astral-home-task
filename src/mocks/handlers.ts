@@ -11,7 +11,7 @@ dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
 const events: EventsByDate = {
   [dayAfterTomorrow.toISOString().split("T")[0]]: [
     {
-      id: "event-1",
+      id: "123e4567-e89b-12d3-a456-426614174000",
       title: "Coffee with Alex",
       description:
         "Meet with Alex to brainstorm ideas for the upcoming product launch.",
@@ -20,7 +20,7 @@ const events: EventsByDate = {
       timestamp: new Date(dayAfterTomorrow.setHours(9, 0, 0, 0)).toISOString(),
     },
     {
-      id: "event-2",
+      id: "223e4567-e89b-12d3-a456-426614174001",
       title: "Team Standup",
       description: "Weekly standup meeting with the dev team.",
       imageUrl:
@@ -30,7 +30,7 @@ const events: EventsByDate = {
   ],
   [tomorrow.toISOString().split("T")[0]]: [
     {
-      id: "event-3",
+      id: "323e4567-e89b-12d3-a456-426614174002",
       title: "Yoga Session",
       description:
         "Join for a relaxing yoga session to reduce stress and improve mindfulness.",
@@ -39,7 +39,7 @@ const events: EventsByDate = {
       timestamp: new Date(tomorrow.setHours(12, 0, 0, 0)).toISOString(),
     },
     {
-      id: "event-4",
+      id: "423e4567-e89b-12d3-a456-426614174003",
       title: "Product Demo",
       description: "Demo of UI improvements and performance optimizations.",
       imageUrl:
@@ -49,7 +49,7 @@ const events: EventsByDate = {
   ],
   [today.toISOString().split("T")[0]]: [
     {
-      id: "event-5",
+      id: "523e4567-e89b-12d3-a456-426614174004",
       title: "Client Meeting",
       description: "Review project progress and timeline adjustments.",
       imageUrl:
@@ -60,18 +60,15 @@ const events: EventsByDate = {
 };
 
 export const handlers = [
-  // Get all events
   http.get("/api/events", () => {
     console.log("Mock handler: GET /api/events");
     return HttpResponse.json(events);
   }),
 
-  // Get a specific event by ID
   http.get("/api/event/:id", ({ params }) => {
     const { id } = params;
     console.log("Mock handler: GET /api/event/", id);
 
-    // Search for the event across all dates
     for (const date in events) {
       const event = events[date].find((event) => event.id === id);
 
@@ -84,5 +81,53 @@ export const handlers = [
       status: 404,
       statusText: "Event not found",
     });
+  }),
+
+  http.patch("/api/event/:id", async ({ params, request }) => {
+    const { id } = params;
+    console.log("Mock handler: PATCH /api/event/", id);
+
+    const body = (await request.json()) as { timestamp?: string };
+    const { timestamp } = body;
+
+    if (!timestamp) {
+      return new HttpResponse(null, {
+        status: 400,
+        statusText: "Timestamp is required",
+      });
+    }
+
+    let updatedEvent = null;
+    const newDate = new Date(timestamp).toISOString().split("T")[0];
+
+    for (const date in events) {
+      const eventIndex = events[date].findIndex((event) => event.id === id);
+
+      if (eventIndex !== -1) {
+        updatedEvent = { ...events[date][eventIndex], timestamp };
+        events[date].splice(eventIndex, 1);
+
+        if (events[date].length === 0) {
+          delete events[date];
+        }
+
+        break;
+      }
+    }
+
+    if (!updatedEvent) {
+      return new HttpResponse(null, {
+        status: 404,
+        statusText: "Event not found",
+      });
+    }
+
+    if (!events[newDate]) {
+      events[newDate] = [];
+    }
+
+    events[newDate].push(updatedEvent);
+
+    return HttpResponse.json(updatedEvent);
   }),
 ];
