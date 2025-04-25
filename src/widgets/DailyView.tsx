@@ -82,7 +82,7 @@ export const DailyView = () => {
         >
           <div className="grid grid-cols-1 gap-4">
             {isDayChanged && draggedEventId && (
-              <div className="text-center text-gray-500 py-8 border-2 border-dashed border-blue-200 rounded-lg bg-blue-50/50">
+              <div className="text-center text-gray-500 py-28 border-2 border-dashed border-blue-200 rounded-lg bg-blue-50/50">
                 <div className="flex flex-col items-center gap-2">
                   <svg className="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />

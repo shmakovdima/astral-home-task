@@ -10,6 +10,7 @@ const dayAfterTomorrow = addDays(today, 2);
 const createEvent = (date: Date, hours: number, minutes: number) => {
   const eventDate = new Date(date);
   eventDate.setHours(hours, minutes, 0, 0);
+  
   return eventDate.toISOString();
 };
 
