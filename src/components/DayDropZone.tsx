@@ -5,12 +5,18 @@ type DayDropZoneProps = {
   children: React.ReactNode;
   onDayChange: (daysToMove: number) => void;
   onDrop?: (daysToMove: number) => void;
+  onTouchStart?: (e: React.TouchEvent) => void;
+  onTouchMove?: (e: React.TouchEvent) => void;
+  onTouchEnd?: (e: React.TouchEvent) => void;
 };
 
 export const DayDropZone = ({
   children,
   onDayChange,
   onDrop,
+  onTouchStart,
+  onTouchMove,
+  onTouchEnd,
 }: DayDropZoneProps) => {
   const isDraggingRef = useRef(false);
   const lastDirectionRef = useRef<"left" | "right" | null>(null);
@@ -163,9 +169,18 @@ export const DayDropZone = ({
       onClick={(e) => e.stopPropagation()}
       onDragLeave={handleDragLeave}
       onDragOver={handleDragOver}
-      onTouchEnd={(e) => e.stopPropagation()}
-      onTouchMove={(e) => e.stopPropagation()}
-      onTouchStart={(e) => e.stopPropagation()}
+      onTouchEnd={(e) => {
+        console.log("DayDropZone touch end");
+        onTouchEnd?.(e);
+      }}
+      onTouchMove={(e) => {
+        console.log("DayDropZone touch move");
+        onTouchMove?.(e);
+      }}
+      onTouchStart={(e) => {
+        console.log("DayDropZone touch start");
+        onTouchStart?.(e);
+      }}
       ref={drop as unknown as React.RefObject<HTMLDivElement>}
     >
       {children}

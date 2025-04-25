@@ -1,4 +1,4 @@
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 type SwipeDirection = "left" | "right";
 
@@ -12,49 +12,78 @@ export const useSwipeNavigation = ({
   minSwipeDistance = 50,
 }: SwipeNavigationProps) => {
   const touchStartX = useRef<number | null>(null);
-  const touchStartY = useRef<number | null>(null);
-  const targetRef = useRef<HTMLElement | null>(null);
+  const elementRef = useRef<HTMLDivElement | null>(null);
+  const isSwiping = useRef(false);
 
-  const handleTouchStart = useCallback((event: React.TouchEvent) => {
-    const target = event.target as HTMLElement;
-    const eventCard = target.closest(".event-card");
-
-    if (eventCard) {
-      // return;
-    }
-
-    event.preventDefault();
-    touchStartX.current = event.touches[0].clientX;
-    touchStartY.current = event.touches[0].clientY;
-    targetRef.current = event.currentTarget as HTMLElement;
+  const resetState = useCallback(() => {
+    touchStartX.current = null;
+    isSwiping.current = false;
   }, []);
 
-  const handleTouchEnd = useCallback(
-    (event: React.TouchEvent) => {
-      if (!touchStartX.current || !touchStartY.current) return;
+  const handleTouchStart = useCallback((event: TouchEvent) => {
+    console.log("touch start");
+    touchStartX.current = event.touches[0].clientX;
+    isSwiping.current = true;
+  }, []);
 
-      event.preventDefault();
-      const touchEndX = event.changedTouches[0].clientX;
-      const touchEndY = event.changedTouches[0].clientY;
+  const handleTouchMove = useCallback(
+    (event: TouchEvent) => {
+      if (!isSwiping.current || !touchStartX.current) return;
 
+      const touchEndX = event.touches[0].clientX;
       const deltaX = touchEndX - touchStartX.current;
-      const deltaY = Math.abs(touchEndY - touchStartY.current);
 
-      if (deltaY < Math.abs(deltaX) / 2) {
-        if (Math.abs(deltaX) >= minSwipeDistance) {
-          onSwipe(deltaX > 0 ? "right" : "left");
-        }
+      console.log("touch move", deltaX);
+
+      if (Math.abs(deltaX) > minSwipeDistance) {
+        event.preventDefault();
       }
-
-      touchStartX.current = null;
-      touchStartY.current = null;
-      targetRef.current = null;
     },
-    [minSwipeDistance, onSwipe],
+    [minSwipeDistance],
   );
 
+  const handleTouchEnd = useCallback(
+    (event: TouchEvent) => {
+      if (!isSwiping.current || !touchStartX.current) return;
+
+      console.log("touch end");
+      const touchEndX = event.changedTouches[0].clientX;
+      const deltaX = touchEndX - touchStartX.current;
+
+      console.log("deltaX", deltaX);
+
+      if (Math.abs(deltaX) >= minSwipeDistance) {
+        onSwipe(deltaX > 0 ? "right" : "left");
+      }
+
+      resetState();
+    },
+    [minSwipeDistance, onSwipe, resetState],
+  );
+
+  const handleTouchCancel = useCallback(() => {
+    console.log("touch cancel");
+    resetState();
+  }, [resetState]);
+
+  useEffect(() => {
+    const element = elementRef.current;
+    if (!element) return;
+
+    element.addEventListener("touchstart", handleTouchStart);
+    element.addEventListener("touchmove", handleTouchMove, { passive: false });
+    element.addEventListener("touchend", handleTouchEnd);
+    element.addEventListener("touchcancel", handleTouchCancel);
+
+    return () => {
+      element.removeEventListener("touchstart", handleTouchStart);
+      element.removeEventListener("touchmove", handleTouchMove);
+      element.removeEventListener("touchend", handleTouchEnd);
+      element.removeEventListener("touchcancel", handleTouchCancel);
+    };
+  }, [handleTouchStart, handleTouchMove, handleTouchEnd, handleTouchCancel]);
+
   return {
-    handleTouchStart,
-    handleTouchEnd,
+    ref: elementRef,
   };
 };

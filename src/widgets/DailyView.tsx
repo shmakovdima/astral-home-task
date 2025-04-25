@@ -6,6 +6,7 @@ import { DayDropZone } from "@/components/DayDropZone";
 import { DaysNavigation } from "@/components/DaysNavigation";
 import { EventCard } from "@/components/EventCard";
 import { useAllEvents } from "@/hooks/useEvents";
+import { useSwipeNavigation } from "@/hooks/useSwipeNavigation";
 import { useUpdateEventDate } from "@/hooks/useUpdateEventDate";
 import type { Event } from "@/models";
 
@@ -16,6 +17,17 @@ export const DailyView = () => {
   const [startDay, setStartDay] = useState<string | null>(null);
   const { data: eventsByDate } = useAllEvents();
   const { mutate: updateEventDate } = useUpdateEventDate();
+
+  const { ref } = useSwipeNavigation({
+    onSwipe: (direction) => {
+      console.log("direction", direction);
+      const daysToMove = direction === "right" ? -1 : 1;
+      const baseDate = new Date(activeDay);
+      const newDate = addDays(baseDate, daysToMove);
+      const formattedDate = format(newDate, "yyyy-MM-dd");
+      setActiveDay(formattedDate);
+    },
+  });
 
   const handleDayChange = (daysToMove: number) => {
     try {
@@ -78,7 +90,7 @@ export const DailyView = () => {
   const isCurrentDay = isSameDay(new Date(activeDay), new Date());
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4" ref={ref}>
       <DaysNavigation activeDay={activeDay} setActiveDay={setActiveDay} />
       <div className="flex flex-col gap-4 p-4">
         <DateHeader date={activeDay} />
