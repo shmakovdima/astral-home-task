@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { addDays, format, isToday, startOfWeek } from "date-fns";
 
 import { EventCard } from "@/components/EventCard";
 import { useAllEvents } from "@/hooks/useEvents";
@@ -9,29 +10,17 @@ export const WeeklyCalendarView = () => {
 
   useEffect(() => {
     const today = new Date();
-    const dayOfWeek = today.getDay();
-    const diff = today.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+    const weekStart = startOfWeek(today, { weekStartsOn: 1 });
 
-    const weekDates = Array.from({ length: 7 }, (_, i) => {
-      const day = new Date(today);
-      day.setDate(diff + i);
-      return day;
-    });
+    const weekDates = Array.from({ length: 7 }, (_, i) =>
+      addDays(weekStart, i),
+    );
 
     setCurrentWeek(weekDates);
   }, []);
 
-  const isToday = (date: Date) => {
-    const today = new Date();
-    return (
-      date.getDate() === today.getDate() &&
-      date.getMonth() === today.getMonth() &&
-      date.getFullYear() === today.getFullYear()
-    );
-  };
-
   const getEventsForDay = (date: Date) => {
-    const dateString = date.toISOString().split("T")[0];
+    const dateString = format(date, "yyyy-MM-dd");
     return eventsByDate?.[dateString] || [];
   };
 
@@ -47,7 +36,7 @@ export const WeeklyCalendarView = () => {
               className={`min-h-[500px] p-1 ${
                 isToday(date) ? "bg-blue-50" : ""
               } ${!isLastDay ? "border-r border-dotted border-white" : ""}`}
-              key={date.toLocaleDateString()}
+              key={format(date, "yyyy-MM-dd")}
             >
               {events.map((event) => (
                 <EventCard {...event} key={event.id} />

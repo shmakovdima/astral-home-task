@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { format } from "date-fns";
 
 type DateHeaderProps = {
   date: string;
@@ -6,14 +7,8 @@ type DateHeaderProps = {
 
 export const DateHeader = ({ date }: DateHeaderProps) => {
   const formattedDate = useMemo(() => {
-    const dateObj = new Date(date);
-    const weekday = dateObj.toLocaleDateString("en-US", { weekday: "short" });
-    const month = dateObj.toLocaleDateString("en-US", { month: "short" });
-    const day = dateObj.getDate();
-
-    const year = dateObj.getFullYear();
-
-    return `${weekday} ${month} ${day} ${year}`;
+    if (!date) return "";
+    return format(new Date(date), "EEE MMM d yyyy");
   }, [date]);
 
   if (!date) return null;

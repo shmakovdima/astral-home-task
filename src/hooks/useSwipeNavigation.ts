@@ -23,15 +23,17 @@ export const useSwipeNavigation = ({
       return;
     }
 
+    event.preventDefault();
     touchStartX.current = event.touches[0].clientX;
     touchStartY.current = event.touches[0].clientY;
-    targetRef.current = event.currentTarget;
+    targetRef.current = event.currentTarget as HTMLElement;
   }, []);
 
   const handleTouchEnd = useCallback(
     (event: React.TouchEvent) => {
       if (!touchStartX.current || !touchStartY.current) return;
 
+      event.preventDefault();
       const touchEndX = event.changedTouches[0].clientX;
       const touchEndY = event.changedTouches[0].clientY;
 

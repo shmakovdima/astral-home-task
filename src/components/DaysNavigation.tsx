@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { addDays, format, startOfDay } from "date-fns";
 import { AnimatePresence, motion } from "framer-motion";
 
 import { cnTwMerge } from "@/helpers/cnTwMerge";
@@ -18,22 +19,16 @@ export const DaysNavigation = ({ activeDay, setActiveDay }: Props) => {
   const [days, setDays] = useState<DayInfo[]>([]);
   const [isAnimating, setIsAnimating] = useState(false);
 
-  const formatDate = (date: Date): string => {
-    const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const year = date.getFullYear();
-    return `${year}-${month}-${day}`;
-  };
+  const formatDate = (date: Date): string => format(date, "yyyy-MM-dd");
 
   useEffect(() => {
     const activeDate = activeDay ? new Date(activeDay) : new Date();
 
     const weekDays = Array.from({ length: 13 }, (_, i) => {
-      const day = new Date(activeDate);
-      day.setDate(activeDate.getDate() + (i - 6));
+      const day = addDays(startOfDay(activeDate), i - 6);
 
       return {
-        name: day.toLocaleDateString("en-US", { weekday: "short" }),
+        name: format(day, "EEE"),
         number: day.getDate(),
         date: day,
       };
@@ -77,7 +72,7 @@ export const DaysNavigation = ({ activeDay, setActiveDay }: Props) => {
   };
 
   return (
-    <div className="bg-gradient-to-r from-blue-400 to-indigo-500 p-6 text-white overflow-hidden">
+    <div className="bg-gradient-to-r from-blue-500 to-purple-500 p-6 text-white overflow-hidden">
       <h1 className="text-2xl font-bold mb-4">Your Schedule</h1>
 
       <div className="relative">
@@ -96,10 +91,10 @@ export const DaysNavigation = ({ activeDay, setActiveDay }: Props) => {
               return (
                 <motion.div
                   className={cnTwMerge(
-                    "flex flex-col items-center cursor-pointer p-2 rounded-lg min-w-[calc(14.2857%-0.5rem)]",
+                    "flex flex-col items-center transition-colors duration-200 cursor-pointer p-2 rounded-lg min-w-[calc(14.2857%-0.5rem)]",
                     index === 6
-                      ? "bg-indigo-600"
-                      : "bg-blue-400 bg-opacity-50 hover:bg-opacity-75",
+                      ? "bg-gradient-to-br from-indigo-600 to-violet-600"
+                      : "bg-gray-100/10 hover:bg-indigo-600/10",
                   )}
                   key={day.date.toISOString()}
                   layout

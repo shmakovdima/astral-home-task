@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
+import { addDays, format, parseISO, subDays } from "date-fns";
 
 import { DateHeader } from "@/components/DateHeader";
 import { DaysNavigation } from "@/components/DaysNavigation";
@@ -8,7 +9,7 @@ import { useSwipeNavigation } from "@/hooks/useSwipeNavigation";
 
 export const DailyView = () => {
   const [activeDay, setActiveDay] = useState<string>(
-    new Date().toISOString().split("T")[0],
+    format(new Date(), "yyyy-MM-dd"),
   );
 
   const { data: eventsByDate } = useAllEvents();
@@ -20,16 +21,14 @@ export const DailyView = () => {
 
   const handleSwipe = useCallback(
     (direction: "left" | "right") => {
-      const currentDate = new Date(activeDay);
-      const newDate = new Date(currentDate);
+      const currentDate = parseISO(activeDay);
 
-      if (direction === "left") {
-        newDate.setDate(currentDate.getDate() + 1);
-      } else {
-        newDate.setDate(currentDate.getDate() - 1);
-      }
+      const newDate =
+        direction === "left"
+          ? addDays(currentDate, 1)
+          : subDays(currentDate, 1);
 
-      setActiveDay(newDate.toISOString().split("T")[0]);
+      setActiveDay(format(newDate, "yyyy-MM-dd"));
     },
     [activeDay],
   );

@@ -1,15 +1,14 @@
+import { addDays, format, parseISO, setHours, setMinutes } from "date-fns";
 import { http, HttpResponse } from "msw";
 
 import { type EventsByDate } from "../models";
 
 const today = new Date();
-const tomorrow = new Date(today);
-tomorrow.setDate(tomorrow.getDate() + 1);
-const dayAfterTomorrow = new Date(today);
-dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
+const tomorrow = addDays(today, 1);
+const dayAfterTomorrow = addDays(today, 2);
 
 const events: EventsByDate = {
-  [dayAfterTomorrow.toISOString().split("T")[0]]: [
+  [format(dayAfterTomorrow, "yyyy-MM-dd")]: [
     {
       id: "123e4567-e89b-12d3-a456-426614174000",
       title: "Coffee with Alex",
@@ -17,7 +16,7 @@ const events: EventsByDate = {
         "Meet with Alex to brainstorm ideas for the upcoming product launch.",
       imageUrl:
         "https://fastly.picsum.photos/id/312/1920/1080.jpg?hmac=OD_fP9MUQN7uJ8NBR7tlii78qwHPUROGgohG4w16Kjw",
-      timestamp: new Date(dayAfterTomorrow.setHours(9, 0, 0, 0)).toISOString(),
+      timestamp: setHours(dayAfterTomorrow, 9).toISOString(),
     },
     {
       id: "223e4567-e89b-12d3-a456-426614174001",
@@ -25,10 +24,10 @@ const events: EventsByDate = {
       description: "Weekly standup meeting with the dev team.",
       imageUrl:
         "http://fastly.picsum.photos/id/737/1920/1080.jpg?hmac=aFzER8Y4wcWTrXVx2wVKSj10IqnygaF33gESj0WGDwI",
-      timestamp: new Date(dayAfterTomorrow.setHours(14, 0, 0, 0)).toISOString(),
+      timestamp: setHours(dayAfterTomorrow, 14).toISOString(),
     },
   ],
-  [tomorrow.toISOString().split("T")[0]]: [
+  [format(tomorrow, "yyyy-MM-dd")]: [
     {
       id: "323e4567-e89b-12d3-a456-426614174002",
       title: "Yoga Session",
@@ -36,7 +35,7 @@ const events: EventsByDate = {
         "Join for a relaxing yoga session to reduce stress and improve mindfulness.",
       imageUrl:
         "https://fastly.picsum.photos/id/392/1920/1080.jpg?hmac=Fvbf7C1Rcozg8EccwYPqsGkk_o6Bld2GQRDPZKWpd7g",
-      timestamp: new Date(tomorrow.setHours(12, 0, 0, 0)).toISOString(),
+      timestamp: setHours(tomorrow, 12).toISOString(),
     },
     {
       id: "423e4567-e89b-12d3-a456-426614174003",
@@ -44,17 +43,17 @@ const events: EventsByDate = {
       description: "Demo of UI improvements and performance optimizations.",
       imageUrl:
         "https://fastly.picsum.photos/id/249/1920/1080.jpg?hmac=cPMNdgGXRh6T_KhRMuaQjRtAx5cWRraELjtL2MHTfYs",
-      timestamp: new Date(tomorrow.setHours(15, 30, 0, 0)).toISOString(),
+      timestamp: setMinutes(setHours(tomorrow, 15), 30).toISOString(),
     },
   ],
-  [today.toISOString().split("T")[0]]: [
+  [format(today, "yyyy-MM-dd")]: [
     {
       id: "523e4567-e89b-12d3-a456-426614174004",
       title: "Client Meeting",
       description: "Review project progress and timeline adjustments.",
       imageUrl:
         "https://fastly.picsum.photos/id/908/1920/1080.jpg?hmac=MeG_oA1s75hHAL_4JzCioh6--zyFTWSCTxOhe8ugvXo",
-      timestamp: new Date(today.setHours(11, 30, 0, 0)).toISOString(),
+      timestamp: setMinutes(setHours(today, 11), 30).toISOString(),
     },
   ],
 };
@@ -98,7 +97,7 @@ export const handlers = [
     }
 
     let updatedEvent = null;
-    const newDate = new Date(timestamp).toISOString().split("T")[0];
+    const newDate = format(parseISO(timestamp), "yyyy-MM-dd");
 
     for (const date in events) {
       const eventIndex = events[date].findIndex((event) => event.id === id);
