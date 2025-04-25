@@ -43,11 +43,11 @@ export const DayDropZone = ({
 
       const move = direction === "left" ? -1 : 1;
       daysMovedRef.current += move;
-      onDayChange(move);
+      onDayChange(daysMovedRef.current);
 
       scrollIntervalRef.current = setInterval(() => {
         daysMovedRef.current += move;
-        onDayChange(move);
+        onDayChange(daysMovedRef.current);
       }, 200);
     },
     [onDayChange],

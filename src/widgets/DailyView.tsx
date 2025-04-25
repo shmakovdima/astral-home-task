@@ -13,15 +13,19 @@ export const DailyView = () => {
   const [activeDay, setActiveDay] = useState(format(new Date(), "yyyy-MM-dd"));
   const [draggedEventId, setDraggedEventId] = useState<string | null>(null);
   const [isDayChanged, setIsDayChanged] = useState(false);
+  const [startDay, setStartDay] = useState<string | null>(null);
   const { data: eventsByDate } = useAllEvents();
   const { mutate: updateEventDate } = useUpdateEventDate();
 
   const handleDayChange = (daysToMove: number) => {
     try {
-      const currentDate = new Date(activeDay);
-      const newDate = addDays(currentDate, daysToMove);
+      if (!startDay) {
+        setStartDay(activeDay);
+      }
+      const baseDate = new Date(startDay || activeDay);
+      const newDate = addDays(baseDate, daysToMove);
 
-      if (isNaN(currentDate.getTime())) {
+      if (isNaN(baseDate.getTime())) {
         throw new Error("Invalid date after modification");
       }
 
@@ -33,18 +37,15 @@ export const DailyView = () => {
     }
   };
 
-  console.log("activeDay inside", activeDay);
-
   const handleEventDrop = useCallback((eventId: string, daysToMove: number) => {
     try {
-      const currentDate = new Date(activeDay);
+      const baseDate = new Date(startDay || activeDay);
       
-      if (isNaN(currentDate.getTime())) {
+      if (isNaN(baseDate.getTime())) {
         throw new Error("Invalid date");
       }
 
-      // Add the days moved to the current date
-      const newDate = addDays(currentDate, daysToMove);
+      const newDate = addDays(baseDate, daysToMove);
       const normalizedDate = set(newDate, { hours: 12, minutes: 0, seconds: 0, milliseconds: 0 });
       
       // Update the event date on the server
@@ -58,8 +59,9 @@ export const DailyView = () => {
     } finally {
       setDraggedEventId(null);
       setIsDayChanged(false);
+      setStartDay(null);
     }
-  }, [activeDay, updateEventDate]);
+  }, [startDay, activeDay, updateEventDate]);
 
   const dayEvents = eventsByDate?.[activeDay] || [];
   const isCurrentDay = isSameDay(new Date(activeDay), new Date());
@@ -94,7 +96,10 @@ export const DailyView = () => {
                 <EventCard
                   key={event.id}
                   {...event}
-                  onDragStart={() => setDraggedEventId(event.id)}
+                  onDragStart={() => {
+                    setDraggedEventId(event.id);
+                    setStartDay(activeDay);
+                  }}
                   onDragEnd={(daysToMove) => handleEventDrop(event.id, daysToMove)}
                 />
               ))
