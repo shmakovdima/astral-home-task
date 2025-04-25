@@ -72,7 +72,7 @@ export const EventCard = memo(
                 isLoading ? "opacity-0" : "opacity-100"
               }`}
               fill
-              onLoadingComplete={() => setIsLoading(false)}
+              onLoad={() => setIsLoading(false)}
               priority
               sizes="(max-width: 768px) 100vw, 128px"
               src={imageUrl}

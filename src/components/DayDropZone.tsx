@@ -15,18 +15,41 @@ export const DayDropZone = ({
   const lastChangeTimeRef = useRef<number>(0);
   const isDraggingRef = useRef(false);
   const lastDirectionRef = useRef<"left" | "right" | null>(null);
+  const scrollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const [{ isOver }, drop] = useDrop(() => ({
     accept: "event",
     drop: () => {
       isDraggingRef.current = false;
       lastDirectionRef.current = null;
+      if (scrollIntervalRef.current) {
+        clearInterval(scrollIntervalRef.current);
+        scrollIntervalRef.current = null;
+      }
       onDrop?.();
     },
     collect: (monitor) => ({
       isOver: !!monitor.isOver(),
     }),
   }));
+
+  const startScrolling = useCallback(
+    (direction: "left" | "right") => {
+      if (scrollIntervalRef.current) return;
+
+      scrollIntervalRef.current = setInterval(() => {
+        onDayChange(direction === "left" ? -1 : 1);
+      }, 300);
+    },
+    [onDayChange],
+  );
+
+  const stopScrolling = useCallback(() => {
+    if (scrollIntervalRef.current) {
+      clearInterval(scrollIntervalRef.current);
+      scrollIntervalRef.current = null;
+    }
+  }, []);
 
   const handleDragOver = useCallback(
     (e: React.DragEvent) => {
@@ -36,9 +59,6 @@ export const DayDropZone = ({
         isDraggingRef.current = true;
         return;
       }
-
-      const now = Date.now();
-      if (now - lastChangeTimeRef.current < 500) return;
 
       const rect = e.currentTarget.getBoundingClientRect();
       const x = e.clientX - rect.left;
@@ -54,11 +74,12 @@ export const DayDropZone = ({
 
       if (direction && direction !== lastDirectionRef.current) {
         lastDirectionRef.current = direction;
-        lastChangeTimeRef.current = now;
-        onDayChange(direction === "left" ? -1 : 1);
+        startScrolling(direction);
+      } else if (!direction) {
+        stopScrolling();
       }
     },
-    [onDayChange],
+    [startScrolling, stopScrolling],
   );
 
   return (
@@ -68,6 +89,7 @@ export const DayDropZone = ({
       }`}
       onClick={(e) => e.stopPropagation()}
       onDragOver={handleDragOver}
+      onDragLeave={stopScrolling}
       onTouchEnd={(e) => e.stopPropagation()}
       onTouchMove={(e) => e.stopPropagation()}
       onTouchStart={(e) => e.stopPropagation()}
