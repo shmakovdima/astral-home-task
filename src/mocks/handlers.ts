@@ -119,7 +119,7 @@ export const handlers = [
       const eventIndex = events[date].findIndex((event) => event.id === id);
 
       if (eventIndex !== -1) {
-        updatedEvent = { ...events[date][eventIndex], timestamp };
+        updatedEvent = { ...events[date][eventIndex] };
         events[date].splice(eventIndex, 1);
 
         if (events[date].length === 0) {

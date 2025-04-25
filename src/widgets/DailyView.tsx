@@ -48,10 +48,11 @@ export const DailyView = () => {
       const newDate = addDays(baseDate, daysToMove);
       const normalizedDate = set(newDate, { hours: 12, minutes: 0, seconds: 0, milliseconds: 0 });
       
-      // Update the event date on the server
+
+      console.info("normalizedDate", normalizedDate, daysToMove)
+
       updateEventDate({ id: eventId, timestamp: normalizedDate.toISOString() });
-      
-      // Update the active day to show the new date
+
       const formattedDate = format(newDate, "yyyy-MM-dd");
       setActiveDay(formattedDate);
     } catch (error) {
