@@ -4,6 +4,8 @@ export type Event = {
   description: string;
   imageUrl: string;
   timestamp: string;
+  duration: number;
+  location: string;
   className?: string;
 };
 

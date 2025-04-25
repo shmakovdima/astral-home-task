@@ -48,7 +48,7 @@ export const DailyView = () => {
         <DateHeader date={activeDay} />
         <div className="mt-6">
           {todayEvents.length > 0 ? (
-            <div className="grid gap-4">
+            <div className="grid gap-4 pb-20">
               {todayEvents.map((event) => (
                 <EventCard {...event} className="event-card" key={event.id} />
               ))}

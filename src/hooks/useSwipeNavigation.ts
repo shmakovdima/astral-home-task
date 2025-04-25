@@ -20,7 +20,7 @@ export const useSwipeNavigation = ({
     const eventCard = target.closest(".event-card");
 
     if (eventCard) {
-      return;
+      // return;
     }
 
     event.preventDefault();

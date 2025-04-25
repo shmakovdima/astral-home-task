@@ -16,21 +16,14 @@ const createTimestamp = (date: Date, hours: number, minutes = 0) => {
 const events: EventsByDate = {
   [format(dayAfterTomorrow, "yyyy-MM-dd")]: [
     {
-      id: "123e4567-e89b-12d3-a456-426614174000",
-      title: "Coffee with Alex",
-      description:
-        "Meet with Alex to brainstorm ideas for the upcoming product launch.",
+      id: "523e4567-e89b-12d3-a456-426614174004",
+      title: "Client Meeting",
+      description: "Review project progress and timeline adjustments.",
       imageUrl:
-        "https://fastly.picsum.photos/id/312/1920/1080.jpg?hmac=OD_fP9MUQN7uJ8NBR7tlii78qwHPUROGgohG4w16Kjw",
-      timestamp: createTimestamp(dayAfterTomorrow, 9),
-    },
-    {
-      id: "223e4567-e89b-12d3-a456-426614174001",
-      title: "Team Standup",
-      description: "Weekly standup meeting with the dev team.",
-      imageUrl:
-        "http://fastly.picsum.photos/id/737/1920/1080.jpg?hmac=aFzER8Y4wcWTrXVx2wVKSj10IqnygaF33gESj0WGDwI",
-      timestamp: createTimestamp(dayAfterTomorrow, 14),
+        "https://fastly.picsum.photos/id/908/1920/1080.jpg?hmac=MeG_oA1s75hHAL_4JzCioh6--zyFTWSCTxOhe8ugvXo",
+      timestamp: createTimestamp(dayAfterTomorrow, 11, 30),
+      duration: 60,
+      location: "Conference Room A",
     },
   ],
   [format(tomorrow, "yyyy-MM-dd")]: [
@@ -42,6 +35,8 @@ const events: EventsByDate = {
       imageUrl:
         "https://fastly.picsum.photos/id/392/1920/1080.jpg?hmac=Fvbf7C1Rcozg8EccwYPqsGkk_o6Bld2GQRDPZKWpd7g",
       timestamp: createTimestamp(tomorrow, 12),
+      duration: 45,
+      location: "Main Hall",
     },
     {
       id: "423e4567-e89b-12d3-a456-426614174003",
@@ -50,16 +45,31 @@ const events: EventsByDate = {
       imageUrl:
         "https://fastly.picsum.photos/id/249/1920/1080.jpg?hmac=cPMNdgGXRh6T_KhRMuaQjRtAx5cWRraELjtL2MHTfYs",
       timestamp: createTimestamp(tomorrow, 15, 30),
+      duration: 90,
+      location: "Training Room",
     },
   ],
   [format(today, "yyyy-MM-dd")]: [
     {
-      id: "523e4567-e89b-12d3-a456-426614174004",
-      title: "Client Meeting",
-      description: "Review project progress and timeline adjustments.",
+      id: "123e4567-e89b-12d3-a456-426614174000",
+      title: "Coffee with Alex",
+      description:
+        "Meet with Alex to brainstorm ideas for the upcoming product launch.",
       imageUrl:
-        "https://fastly.picsum.photos/id/908/1920/1080.jpg?hmac=MeG_oA1s75hHAL_4JzCioh6--zyFTWSCTxOhe8ugvXo",
-      timestamp: createTimestamp(today, 11, 30),
+        "https://fastly.picsum.photos/id/312/1920/1080.jpg?hmac=OD_fP9MUQN7uJ8NBR7tlii78qwHPUROGgohG4w16Kjw",
+      timestamp: createTimestamp(today, 9),
+      duration: 30,
+      location: "Cafeteria",
+    },
+    {
+      id: "223e4567-e89b-12d3-a456-426614174001",
+      title: "Team Standup",
+      description: "Weekly standup meeting with the dev team.",
+      imageUrl:
+        "http://fastly.picsum.photos/id/737/1920/1080.jpg?hmac=aFzER8Y4wcWTrXVx2wVKSj10IqnygaF33gESj0WGDwI",
+      timestamp: createTimestamp(today, 14),
+      duration: 45,
+      location: "Meeting Room B",
     },
   ],
 };
