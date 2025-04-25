@@ -1,9 +1,16 @@
 import { useLayoutEffect, useState } from "react";
 import type { AppProps } from "next/app";
+import { Roboto } from "next/font/google";
 
 import { ReactQueryProvider } from "@/providers/ReactQueryProvider";
 
 import "../styles/globals.css";
+
+const roboto = Roboto({
+  weight: ["300", "400", "500", "700"],
+  subsets: ["latin"],
+  display: "swap",
+});
 
 const MyApp = ({ Component, pageProps }: AppProps) => {
   const [isReady, setIsReady] = useState(false);
@@ -35,7 +42,9 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
 
   return (
     <ReactQueryProvider>
-      <Component {...pageProps} />
+      <div className={roboto.className}>
+        <Component {...pageProps} />
+      </div>
     </ReactQueryProvider>
   );
 };
