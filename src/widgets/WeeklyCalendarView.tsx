@@ -133,6 +133,13 @@ export const WeeklyCalendarView = () => {
           return;
         }
 
+        if (daysToMove === 0) {
+          console.log("Дроп вне зоны, пропускаем");
+          setIsDayChanged(false);
+          setTargetDayIndex(null);
+          return;
+        }
+
         isProcessingDropRef.current = true;
 
         console.log(

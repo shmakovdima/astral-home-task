@@ -23,6 +23,26 @@ export const DayDropZone = ({
   const edgeThreshold = 100;
   const weekChangeRef = useRef<"prev" | "next" | null>(null);
 
+  useEffect(() => {
+    const handleDragEnd = () => {
+      console.log("dragend");
+      // При дропе вне зоны просто сбрасываем состояние
+      startX.current = null;
+      daysToMove.current = 0;
+      weekChangeRef.current = null;
+      setIsNearLeftEdge(false);
+      setIsNearRightEdge(false);
+      hasDroppedRef.current = false;
+      // Сбрасываем состояние через onDayChange
+      onDayChange(0);
+    };
+
+    document.addEventListener("dragend", handleDragEnd);
+    return () => {
+      document.removeEventListener("dragend", handleDragEnd);
+    };
+  }, [onDayChange]);
+
   useEffect(
     () => () => {
       if (weekChangeTimerRef.current) {
@@ -38,10 +58,10 @@ export const DayDropZone = ({
       hover: (_, monitor) => {
         if (!monitor.isOver()) {
           hasDroppedRef.current = false;
+          return;
         }
 
         const clientOffset = monitor.getClientOffset();
-
         if (!clientOffset) return;
 
         if (startX.current === null) {
@@ -87,7 +107,21 @@ export const DayDropZone = ({
           onDayChange(newDaysToMove);
         }
       },
-      drop: () => {
+      drop: (_, monitor) => {
+        console.log("drop", monitor.isOver());
+        // Если дроп вне зоны, не перемещаем событие
+        if (!monitor.isOver()) {
+          startX.current = null;
+          daysToMove.current = 0;
+          weekChangeRef.current = null;
+          setIsNearLeftEdge(false);
+          setIsNearRightEdge(false);
+          hasDroppedRef.current = false;
+          // Сбрасываем состояние через onDayChange
+          onDayChange(0);
+          return { daysToMove: 0 };
+        }
+
         if (weekChangeTimerRef.current) {
           clearTimeout(weekChangeTimerRef.current);
           weekChangeTimerRef.current = null;
@@ -130,7 +164,7 @@ export const DayDropZone = ({
   return (
     <div
       className={`w-full h-full relative ${isOver ? "bg-blue-50/30" : ""}`}
-      ref={drop}
+      ref={drop as any}
     >
       {isNearLeftEdge ? (
         <div className="absolute left-0 top-0 bottom-0 w-[100px] bg-gradient-to-r from-blue-500/20 to-transparent z-10 flex items-center justify-start">
