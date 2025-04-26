@@ -5,18 +5,12 @@ type DayDropZoneProps = {
   children: React.ReactNode;
   onDayChange: (daysToMove: number) => void;
   onDrop?: (daysToMove: number) => void;
-  onTouchStart?: (e: React.TouchEvent) => void;
-  onTouchMove?: (e: React.TouchEvent) => void;
-  onTouchEnd?: (e: React.TouchEvent) => void;
 };
 
 export const DayDropZone = ({
   children,
   onDayChange,
   onDrop,
-  onTouchStart,
-  onTouchMove,
-  onTouchEnd,
 }: DayDropZoneProps) => {
   const isDraggingRef = useRef(false);
   const lastDirectionRef = useRef<"left" | "right" | null>(null);
@@ -24,8 +18,10 @@ export const DayDropZone = ({
   const daysMovedRef = useRef(0);
   const [lastDragPosition, setLastDragPosition] = useState<number | null>(null);
   const dropTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
+  const draggedEventId = useRef<string | null>(null);
 
-  // Cleanup function to prevent stuck states
   useEffect(
     () => () => {
       if (scrollIntervalRef.current) {
@@ -40,6 +36,9 @@ export const DayDropZone = ({
       lastDirectionRef.current = null;
       setLastDragPosition(null);
       daysMovedRef.current = 0;
+      touchStartX.current = null;
+      touchStartY.current = null;
+      draggedEventId.current = null;
     },
     [],
   );
@@ -61,6 +60,9 @@ export const DayDropZone = ({
     isDraggingRef.current = false;
     lastDirectionRef.current = null;
     setLastDragPosition(null);
+    touchStartX.current = null;
+    touchStartY.current = null;
+    draggedEventId.current = null;
 
     if (scrollIntervalRef.current) {
       clearInterval(scrollIntervalRef.current);
@@ -144,12 +146,97 @@ export const DayDropZone = ({
     [startScrolling, stopScrolling, lastDragPosition],
   );
 
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement;
+    const eventCard = target.closest(".event-card") as HTMLElement;
+    if (!eventCard) return;
+
+    const eventId = eventCard.dataset.eventId;
+    if (!eventId) return;
+
+    draggedEventId.current = eventId;
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+    isDraggingRef.current = true;
+    daysMovedRef.current = 0;
+    lastDirectionRef.current = null;
+
+    eventCard.style.transform = "scale(0.95)";
+    eventCard.style.opacity = "0.8";
+  };
+
+  const handleTouchMove = useCallback(
+    (e: React.TouchEvent) => {
+      if (
+        !isDraggingRef.current ||
+        !touchStartX.current ||
+        !touchStartY.current
+      ) {
+        return;
+      }
+
+      const touch = e.touches[0];
+      const deltaX = touch.clientX - touchStartX.current;
+      const deltaY = Math.abs(touch.clientY - touchStartY.current);
+
+      if (deltaY < Math.abs(deltaX) / 2) {
+        e.preventDefault();
+
+        const rect = e.currentTarget.getBoundingClientRect();
+
+        if (Math.abs(deltaX) > 5) {
+          let direction: "left" | "right" | null = null;
+
+          if (deltaX < 0) {
+            direction = "left";
+          } else if (deltaX > 0) {
+            direction = "right";
+          }
+
+          if (direction) {
+            if (direction !== lastDirectionRef.current) {
+              lastDirectionRef.current = direction;
+              startScrolling(direction);
+            }
+          } else {
+            stopScrolling();
+          }
+        }
+      }
+    },
+    [startScrolling, stopScrolling],
+  );
+
+  const handleTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!draggedEventId.current) return;
+
+    const eventCard = document.querySelector(
+      `.event-card[data-event-id="${draggedEventId.current}"]`,
+    ) as HTMLElement;
+
+    if (eventCard) {
+      eventCard.style.transform = "";
+      eventCard.style.opacity = "";
+    }
+
+    if (daysMovedRef.current !== 0) {
+      onDrop?.(daysMovedRef.current);
+    }
+
+    draggedEventId.current = null;
+    isDraggingRef.current = false;
+    touchStartX.current = null;
+    touchStartY.current = null;
+    daysMovedRef.current = 0;
+    lastDirectionRef.current = null;
+    stopScrolling();
+  };
+
   const handleDragLeave = useCallback(
     (e: React.DragEvent) => {
       e.preventDefault();
       e.stopPropagation();
 
-      // Add a small delay before cleanup to prevent stuck states
       if (dropTimeoutRef.current) {
         clearTimeout(dropTimeoutRef.current);
       }
@@ -169,18 +256,9 @@ export const DayDropZone = ({
       onClick={(e) => e.stopPropagation()}
       onDragLeave={handleDragLeave}
       onDragOver={handleDragOver}
-      onTouchEnd={(e) => {
-        console.log("DayDropZone touch end");
-        onTouchEnd?.(e);
-      }}
-      onTouchMove={(e) => {
-        console.log("DayDropZone touch move");
-        onTouchMove?.(e);
-      }}
-      onTouchStart={(e) => {
-        console.log("DayDropZone touch start");
-        onTouchStart?.(e);
-      }}
+      onTouchEnd={handleTouchEnd}
+      onTouchMove={handleTouchMove}
+      onTouchStart={handleTouchStart}
       ref={drop as unknown as React.RefObject<HTMLDivElement>}
     >
       {children}

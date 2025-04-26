@@ -19,8 +19,6 @@ axiosInstance.interceptors.request.use(
       if (config.url && !config.url.startsWith("/api")) {
         config.url = `/api${config.url}`;
       }
-
-      console.log("Axios request config:", config);
     }
 
     return config;
@@ -32,10 +30,7 @@ axiosInstance.interceptors.request.use(
 );
 
 axiosInstance.interceptors.response.use(
-  (response) => {
-    console.log("Axios response:", response);
-    return response;
-  },
+  (response) => response,
   (error) => {
     console.error("Axios response error:", error);
     return Promise.reject(error);

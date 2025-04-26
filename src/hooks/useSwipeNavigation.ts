@@ -21,7 +21,6 @@ export const useSwipeNavigation = ({
   }, []);
 
   const handleTouchStart = useCallback((event: TouchEvent) => {
-
     touchStartX.current = event.touches[0].clientX;
     isSwiping.current = true;
   }, []);

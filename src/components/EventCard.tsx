@@ -1,6 +1,6 @@
 import { memo, useMemo, useState } from "react";
-import { useDrag } from "react-dnd";
 import Image from "next/image";
+import { useDrag } from "react-dnd";
 
 import { type Event } from "@/models";
 
@@ -57,9 +57,7 @@ export const EventCard = memo(
         className={`rounded-lg shadow-sm hover:shadow-md transition-all bg-white event-card ${
           isDragging ? "opacity-50 cursor-grabbing" : ""
         }`}
-        onTouchEnd={(e) => e.stopPropagation()}
-        onTouchMove={(e) => e.stopPropagation()}
-        onTouchStart={(e) => e.stopPropagation()}
+        data-event-id={id}
         ref={drag as unknown as React.RefObject<HTMLDivElement>}
       >
         <div className="flex flex-col gap-4 w-full">
@@ -71,13 +69,14 @@ export const EventCard = memo(
             />
             <Image
               alt={title}
-              className={`object-cover transition-opacity duration-300 ${
+              className={`transition-opacity duration-300 ${
                 isLoading ? "opacity-0" : "opacity-100"
               }`}
               fill
               onLoad={() => setIsLoading(false)}
               priority
               src={imageUrl}
+              style={{ objectFit: "cover" }}
             />
             <div className="absolute flex justify-center align-middle top-3 right-3 px-2 py-1 rounded-full bg-gradient-to-r from-indigo-600 to-violet-600">
               <span className="text-xs font-medium text-white">

@@ -101,7 +101,6 @@ export const useDragAndDrop = ({
 
       setDragPosition({ x: deltaX, y: deltaY });
 
-      // Check if we're near the screen edge
       const screenWidth = window.innerWidth;
       const isNearLeftEdge = event.clientX < threshold;
       const isNearRightEdge = event.clientX > screenWidth - threshold;

@@ -17,20 +17,17 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
   const [isReady, setIsReady] = useState(false);
 
   useLayoutEffect(() => {
-    if (
-      process.env.NODE_ENV === "development" &&
-      typeof window !== "undefined"
-    ) {
+    if (typeof window !== "undefined") {
       import("../mocks/browser").then(({ worker }) => {
-        worker
-          .start({
-            onUnhandledRequest: "bypass",
-            serviceWorker: {
-              url: `${process.env.NEXT_PUBLIC_BASE_PATH || ""}/mockServiceWorker.js`,
-            },
-            quiet: true,
-          })
-          .then(() => setIsReady(true));
+        worker.start({
+          onUnhandledRequest: "bypass",
+        }).then(() => {
+          console.log("MSW worker started");
+          setIsReady(true);
+        }).catch((error) => {
+          console.error("Failed to start MSW worker:", error);
+          setIsReady(true);
+        });
       });
     } else {
       setIsReady(true);
