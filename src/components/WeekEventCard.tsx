@@ -189,13 +189,13 @@ export const WeekEventCard = memo(
               />
               <motion.div
                 animate={{ opacity: 1 }}
-                className="fixed inset-0 flex items-center justify-center"
+                className="fixed inset-0 flex items-center justify-center pointer-events-none"
                 exit={{ opacity: 0 }}
                 initial={{ opacity: 0 }}
                 transition={{ duration: 0.3 }}
               >
                 <motion.div
-                  className="flex flex-col w-[480px] max-h-[90vh] bg-white rounded-xl overflow-hidden"
+                  className="flex flex-col w-[480px] max-h-[90vh] bg-white rounded-xl overflow-hidden pointer-events-auto"
                   layoutId={getLayoutId("card")}
                 >
                   <motion.div
