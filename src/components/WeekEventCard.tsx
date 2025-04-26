@@ -195,11 +195,11 @@ export const WeekEventCard = memo(
                 transition={{ duration: 0.3 }}
               >
                 <motion.div
-                  className="flex flex-col w-full h-full bg-white"
+                  className="flex flex-col w-[480px] max-h-[90vh] bg-white rounded-xl overflow-hidden"
                   layoutId={getLayoutId("card")}
                 >
                   <motion.div
-                    className="relative w-full h-[30vh]"
+                    className="relative w-full h-[240px]"
                     layoutId={getLayoutId("image-container")}
                   >
                     <Image
@@ -244,7 +244,7 @@ export const WeekEventCard = memo(
                     </motion.button>
                   </motion.div>
                   <motion.div
-                    className="flex flex-col p-4"
+                    className="flex flex-col p-4 overflow-y-auto"
                     layoutId={getLayoutId("content")}
                   >
                     <motion.div
