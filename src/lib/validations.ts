@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const eventSchema = z.object({
   id: z.string().uuid(),
-  title: z.string().min(1, "Title is required").max(100),
+  title: z.string().min(1, "Title is required").max(200),
   description: z.string().max(500),
   imageUrl: z.string(),
   timestamp: z.string().datetime({ offset: true }),

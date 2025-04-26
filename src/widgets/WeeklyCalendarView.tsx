@@ -131,7 +131,7 @@ export const WeeklyCalendarView = () => {
         setIsDayChanged(false);
       }
     } catch (error) {
-      console.error("Ошибка при изменении дня:", error);
+      console.error("Error changing day:", error);
     }
   };
 
@@ -157,7 +157,7 @@ export const WeeklyCalendarView = () => {
           .find((e) => e.id === eventId);
 
         if (!event) {
-          console.error("Событие не найдено");
+          console.error("Event not found");
           return;
         }
 
@@ -192,7 +192,7 @@ export const WeeklyCalendarView = () => {
         );
 
         if (startDayIndex === -1) {
-          console.error("Исходный день не найден");
+          console.error("Source day not found");
           return;
         }
 
@@ -215,10 +215,10 @@ export const WeeklyCalendarView = () => {
             timestamp: normalizedDate.toISOString(),
           });
         } else {
-          console.error("Целевой индекс вне диапазона недели:", targetIndex);
+          console.error("Target index is outside the week range:", targetIndex);
         }
       } catch (error) {
-        console.error("Ошибка при обновлении даты:", error);
+        console.error("Error updating date:", error);
       } finally {
         setTimeout(() => {
           isProcessingDropRef.current = false;

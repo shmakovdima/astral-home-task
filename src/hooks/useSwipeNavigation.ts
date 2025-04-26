@@ -5,11 +5,13 @@ type SwipeDirection = "left" | "right";
 type SwipeNavigationProps = {
   onSwipe: (direction: SwipeDirection) => void;
   minSwipeDistance?: number;
+  isDisabled?: boolean;
 };
 
 export const useSwipeNavigation = ({
   onSwipe,
   minSwipeDistance = 50,
+  isDisabled = false,
 }: SwipeNavigationProps) => {
   const touchStartX = useRef<number | null>(null);
   const elementRef = useRef<HTMLDivElement | null>(null);
@@ -21,13 +23,16 @@ export const useSwipeNavigation = ({
   }, []);
 
   const handleTouchStart = useCallback((event: TouchEvent) => {
+    if (isDisabled) return;
+    if (document.querySelector('.bg-black\\/40')) return;
     touchStartX.current = event.touches[0].clientX;
     isSwiping.current = true;
-  }, []);
+  }, [isDisabled]);
 
   const handleTouchMove = useCallback(
     (event: TouchEvent) => {
-      if (!isSwiping.current || !touchStartX.current) return;
+      if (isDisabled || !isSwiping.current || !touchStartX.current) return;
+      if (document.querySelector('.bg-black\\/40')) return;
 
       const touchEndX = event.touches[0].clientX;
       const deltaX = touchEndX - touchStartX.current;
@@ -36,12 +41,13 @@ export const useSwipeNavigation = ({
         event.preventDefault();
       }
     },
-    [minSwipeDistance],
+    [minSwipeDistance, isDisabled],
   );
 
   const handleTouchEnd = useCallback(
     (event: TouchEvent) => {
-      if (!isSwiping.current || !touchStartX.current) return;
+      if (isDisabled || !isSwiping.current || !touchStartX.current) return;
+      if (document.querySelector('.bg-black\\/40')) return;
 
       const touchEndX = event.changedTouches[0].clientX;
       const deltaX = touchEndX - touchStartX.current;
@@ -52,7 +58,7 @@ export const useSwipeNavigation = ({
 
       resetState();
     },
-    [minSwipeDistance, onSwipe, resetState],
+    [minSwipeDistance, onSwipe, resetState, isDisabled],
   );
 
   const handleTouchCancel = useCallback(() => {

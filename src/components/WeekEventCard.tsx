@@ -83,13 +83,8 @@ export const WeekEventCard = memo(
         data-event-id={id}
         ref={dragRef}
       >
-        <div className="flex flex-col gap-4 w-full">
-          <div className="relative w-full h-32 rounded-md overflow-hidden">
-            <div
-              className={`absolute inset-0 bg-gray-200 animate-pulse ${
-                isLoading ? "block" : "hidden"
-              }`}
-            />
+        <div className="flex flex-col w-full">
+          <div className="relative w-full h-32 rounded-t-md overflow-hidden">
             <Image
               alt={title}
               className={`transition-opacity duration-300 ${
@@ -109,7 +104,7 @@ export const WeekEventCard = memo(
           </div>
           <div className="flex-1 p-4">
             <div className="flex justify-between items-start">
-              <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+              <h3 className="text-lg font-semibold text-gray-900 line-clamp-2">{title}</h3>
             </div>
             <p className="mt-2 text-sm text-gray-600 line-clamp-2">{description}</p>
           </div>

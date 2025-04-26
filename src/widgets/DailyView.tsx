@@ -13,19 +13,36 @@ import type { Event } from "@/models";
 export const DailyView = () => {
   const [activeDay, setActiveDay] = useState(format(new Date(), "yyyy-MM-dd"));
   const [draggedEventId, setDraggedEventId] = useState<string | null>(null);
+  const [draggedHeight, setDraggedHeight] = useState<number>(0);
   const [isDayChanged, setIsDayChanged] = useState(false);
   const [startDay, setStartDay] = useState<string | null>(null);
+  const [isAnyCardExpanded, setIsAnyCardExpanded] = useState(false);
   const { data: eventsByDate } = useAllEvents();
   const { mutate: updateEventDate } = useUpdateEventDate();
 
+  const handlePrevDay = () => {
+    const baseDate = new Date(activeDay);
+    const newDate = addDays(baseDate, -1);
+    const formattedDate = format(newDate, "yyyy-MM-dd");
+    setActiveDay(formattedDate);
+  };
+
+  const handleNextDay = () => {
+    const baseDate = new Date(activeDay);
+    const newDate = addDays(baseDate, 1);
+    const formattedDate = format(newDate, "yyyy-MM-dd");
+    setActiveDay(formattedDate);
+  };
+
   const { ref } = useSwipeNavigation({
     onSwipe: (direction) => {
-      const daysToMove = direction === "right" ? -1 : 1;
-      const baseDate = new Date(activeDay);
-      const newDate = addDays(baseDate, daysToMove);
-      const formattedDate = format(newDate, "yyyy-MM-dd");
-      setActiveDay(formattedDate);
+      if (direction === "right") {
+        handlePrevDay();
+      } else {
+        handleNextDay();
+      }
     },
+    minSwipeDistance: 50
   });
 
   const handleDayChange = (daysToMove: number) => {
@@ -114,7 +131,10 @@ export const DailyView = () => {
         >
           <div className="grid grid-cols-1 gap-4">
             {isDayChanged && draggedEventId ? (
-              <div className="text-center text-gray-500 py-28 border-2 border-dashed border-blue-200 rounded-lg bg-blue-50/50">
+              <div 
+                className="text-center text-gray-500 border-2 border-dashed border-blue-200 rounded-lg bg-blue-50/50 flex items-center justify-center"
+                style={{ height: draggedHeight }}
+              >
                 <div className="flex flex-col items-center gap-2">
                   <svg
                     className="w-8 h-8 text-blue-400"
@@ -144,10 +164,15 @@ export const DailyView = () => {
                     onDragEnd={(daysToMove) =>
                       handleEventDrop(event.id, daysToMove)
                     }
-                    onDragStart={() => {
+                    onDragStart={(height) => {
                       setDraggedEventId(event.id);
+                      setDraggedHeight(height);
                       setStartDay(activeDay);
                     }}
+                    onExpandChange={(expanded) => {
+                      setIsAnyCardExpanded(expanded);
+                    }}
+                    disableAnimation={!!draggedEventId && draggedEventId !== event.id}
                   />
                 ))
               : !draggedEventId && (

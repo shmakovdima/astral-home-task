@@ -20,7 +20,7 @@ export const DayDropZone = ({
   const daysToMove = useRef<number>(0);
   const weekChangeTimerRef = useRef<NodeJS.Timeout | null>(null);
   const hasDroppedRef = useRef(false);
-  const edgeThreshold = 80;
+  const edgeThreshold = 50;
   const weekChangeRef = useRef<"prev" | "next" | null>(null);
 
   const handleEdgeChange = useCallback(
