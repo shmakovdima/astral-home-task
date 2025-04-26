@@ -20,7 +20,6 @@ export const DailyView = () => {
 
   const { ref } = useSwipeNavigation({
     onSwipe: (direction) => {
-      console.log("direction", direction);
       const daysToMove = direction === "right" ? -1 : 1;
       const baseDate = new Date(activeDay);
       const newDate = addDays(baseDate, daysToMove);

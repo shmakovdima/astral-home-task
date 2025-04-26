@@ -25,19 +25,17 @@ export const DayDropZone = ({
 
   useEffect(() => {
     const handleDragEnd = () => {
-      console.log("dragend");
-      // При дропе вне зоны просто сбрасываем состояние
       startX.current = null;
       daysToMove.current = 0;
       weekChangeRef.current = null;
       setIsNearLeftEdge(false);
       setIsNearRightEdge(false);
       hasDroppedRef.current = false;
-      // Сбрасываем состояние через onDayChange
       onDayChange(0);
     };
 
     document.addEventListener("dragend", handleDragEnd);
+
     return () => {
       document.removeEventListener("dragend", handleDragEnd);
     };
@@ -108,8 +106,6 @@ export const DayDropZone = ({
         }
       },
       drop: (_, monitor) => {
-        console.log("drop", monitor.isOver());
-        // Если дроп вне зоны, не перемещаем событие
         if (!monitor.isOver()) {
           startX.current = null;
           daysToMove.current = 0;
@@ -117,7 +113,6 @@ export const DayDropZone = ({
           setIsNearLeftEdge(false);
           setIsNearRightEdge(false);
           hasDroppedRef.current = false;
-          // Сбрасываем состояние через onDayChange
           onDayChange(0);
           return { daysToMove: 0 };
         }
@@ -164,10 +159,12 @@ export const DayDropZone = ({
   return (
     <div
       className={`w-full h-full relative ${isOver ? "bg-blue-50/30" : ""}`}
-      ref={drop as any}
+      ref={drop as unknown as React.RefObject<HTMLDivElement>}
     >
+      {children}
+
       {isNearLeftEdge ? (
-        <div className="absolute left-0 top-0 bottom-0 w-[100px] bg-gradient-to-r from-blue-500/20 to-transparent z-10 flex items-center justify-start">
+        <div className="absolute left-0 top-0 w-[100px] bg-gradient-to-r h-screen from-blue-500/20 to-transparent z-[100] flex items-center justify-start">
           <div className="ml-4 bg-blue-500 rounded-full p-2 text-white">
             <svg
               className="w-6 h-6"
@@ -187,7 +184,7 @@ export const DayDropZone = ({
       ) : null}
 
       {isNearRightEdge ? (
-        <div className="absolute right-0 top-0 bottom-0 w-[100px] bg-gradient-to-l from-blue-500/20 to-transparent z-10 flex items-center justify-end">
+        <div className="absolute right-0 top-0 w-[100px] bg-gradient-to-l h-screen from-blue-500/20 to-transparent z-[100] flex items-center justify-end">
           <div className="mr-4 bg-blue-500 rounded-full p-2 text-white">
             <svg
               className="w-6 h-6"
@@ -205,8 +202,6 @@ export const DayDropZone = ({
           </div>
         </div>
       ) : null}
-
-      {children}
     </div>
   );
 };

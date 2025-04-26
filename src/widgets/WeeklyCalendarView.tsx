@@ -11,7 +11,6 @@ import {
 
 import { DayDropZone } from "@/components/DayDropZone";
 import { WeekEventCard } from "@/components/WeekEventCard";
-import { WeeksHeader } from "@/components/WeeksHeader";
 import { WeeksNavigation } from "@/components/WeeksNavigation";
 import { cnTwMerge } from "@/helpers/cnTwMerge";
 import { useAllEvents } from "@/hooks/useEvents";
@@ -129,22 +128,16 @@ export const WeeklyCalendarView = () => {
     (eventId: string, daysToMove: number) => {
       try {
         if (isProcessingDropRef.current) {
-          console.log("Событие уже обрабатывается, пропускаем");
           return;
         }
 
         if (daysToMove === 0) {
-          console.log("Дроп вне зоны, пропускаем");
           setIsDayChanged(false);
           setTargetDayIndex(null);
           return;
         }
 
         isProcessingDropRef.current = true;
-
-        console.log(
-          `Обработка перетаскивания события ${eventId} на ${daysToMove} дней`,
-        );
 
         const event = Object.values(eventsByDate || {})
           .flat()
@@ -171,10 +164,6 @@ export const WeeklyCalendarView = () => {
               seconds: originalDate.getSeconds(),
               milliseconds: 0,
             });
-
-            console.log(
-              `Перемещение события на другую неделю: ${format(normalizedDate, "yyyy-MM-dd HH:mm")}`,
-            );
 
             updateEventDate({
               id: eventId,
@@ -207,10 +196,6 @@ export const WeeklyCalendarView = () => {
             seconds: originalDate.getSeconds(),
             milliseconds: 0,
           });
-
-          console.log(
-            `Перемещение события на: ${format(normalizedDate, "yyyy-MM-dd HH:mm")}`,
-          );
 
           updateEventDate({
             id: eventId,

@@ -56,7 +56,6 @@ export const useSwipeNavigation = ({
   );
 
   const handleTouchCancel = useCallback(() => {
-    console.log("touch cancel");
     resetState();
   }, [resetState]);
 
