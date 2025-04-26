@@ -52,15 +52,23 @@ export const DailyView = () => {
   const handleEventDrop = useCallback(
     (eventId: string, daysToMove: number) => {
       try {
-        const baseDate = new Date(startDay || activeDay);
+        let targetDate: Date;
 
-        if (isNaN(baseDate.getTime())) {
-          throw new Error("Invalid date");
+        if (daysToMove === 0) {
+          // If dropped outside zone, use current active day
+          targetDate = new Date(activeDay);
+        } else {
+          // Otherwise calculate new date based on movement
+          const baseDate = new Date(startDay || activeDay);
+
+          if (isNaN(baseDate.getTime())) {
+            throw new Error("Invalid date");
+          }
+
+          targetDate = addDays(baseDate, daysToMove);
         }
 
-        const newDate = addDays(baseDate, daysToMove);
-
-        const normalizedDate = set(newDate, {
+        const normalizedDate = set(targetDate, {
           hours: 12,
           minutes: 0,
           seconds: 0,
@@ -72,8 +80,11 @@ export const DailyView = () => {
           timestamp: normalizedDate.toISOString(),
         });
 
-        const formattedDate = format(newDate, "yyyy-MM-dd");
-        setActiveDay(formattedDate);
+        // Only update activeDay if we actually moved the event
+        if (daysToMove !== 0) {
+          const formattedDate = format(targetDate, "yyyy-MM-dd");
+          setActiveDay(formattedDate);
+        }
       } catch (error) {
         console.error("Error updating event date:", error);
       } finally {
@@ -84,12 +95,6 @@ export const DailyView = () => {
     },
     [startDay, activeDay, updateEventDate],
   );
-
-  const handleReset = useCallback(() => {
-    setDraggedEventId(null);
-    setIsDayChanged(false);
-    setStartDay(null);
-  }, []);
 
   const dayEvents = eventsByDate?.[activeDay] || [];
   const isCurrentDay = isSameDay(new Date(activeDay), new Date());
@@ -106,7 +111,6 @@ export const DailyView = () => {
               handleEventDrop(draggedEventId, daysToMove);
             }
           }}
-          onReset={handleReset}
         >
           <div className="grid grid-cols-1 gap-4">
             {isDayChanged && draggedEventId ? (

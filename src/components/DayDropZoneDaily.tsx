@@ -5,14 +5,12 @@ type DayDropZoneDailyProps = {
   children: React.ReactNode;
   onDayChange: (daysToMove: number) => void;
   onDrop?: (daysToMove: number) => void;
-  onReset?: () => void;
 };
 
 export const DayDropZoneDaily = ({
   children,
   onDayChange,
   onDrop,
-  onReset,
 }: DayDropZoneDailyProps) => {
   const isDraggingRef = useRef(false);
   const lastDirectionRef = useRef<"left" | "right" | null>(null);
@@ -77,13 +75,13 @@ export const DayDropZoneDaily = ({
     const handleDragEnd = () => {
       stopScrolling();
       cleanupDragState();
-      onReset?.();
+      onDrop?.(0);
     };
 
     const handleTouchEndGlobal = () => {
       stopScrolling();
       cleanupDragState();
-      onReset?.();
+      onDrop?.(0);
     };
 
     document.addEventListener("dragend", handleDragEnd);
@@ -93,7 +91,7 @@ export const DayDropZoneDaily = ({
       document.removeEventListener("dragend", handleDragEnd);
       document.removeEventListener("touchend", handleTouchEndGlobal);
     };
-  }, [stopScrolling, cleanupDragState, onReset]);
+  }, [stopScrolling, cleanupDragState, onDrop]);
 
   const [{ isOver }, drop] = useDrop(() => ({
     accept: "event",
