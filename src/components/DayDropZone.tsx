@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useDrop } from "react-dnd";
 
 type DayDropZoneProps = {
@@ -6,6 +6,7 @@ type DayDropZoneProps = {
   onDayChange: (daysToMove: number) => void;
   onDrop: (daysToMove: number) => void;
   onWeekChange?: (direction: "prev" | "next") => void;
+  onEdgeChange?: (isLeft: boolean, isRight: boolean) => void;
 };
 
 export const DayDropZone = ({
@@ -13,6 +14,7 @@ export const DayDropZone = ({
   onDayChange,
   onDrop,
   onWeekChange,
+  onEdgeChange,
 }: DayDropZoneProps) => {
   const startX = useRef<number | null>(null);
   const daysToMove = useRef<number>(0);
@@ -20,16 +22,21 @@ export const DayDropZone = ({
   const [isNearRightEdge, setIsNearRightEdge] = useState(false);
   const weekChangeTimerRef = useRef<NodeJS.Timeout | null>(null);
   const hasDroppedRef = useRef(false);
-  const edgeThreshold = 100;
+  const edgeThreshold = 50;
   const weekChangeRef = useRef<"prev" | "next" | null>(null);
+
+  const handleEdgeChange = useCallback((left: boolean, right: boolean) => {
+    setIsNearLeftEdge(left);
+    setIsNearRightEdge(right);
+    onEdgeChange?.(left, right);
+  }, [onEdgeChange]);
 
   useEffect(() => {
     const handleDragEnd = () => {
       startX.current = null;
       daysToMove.current = 0;
       weekChangeRef.current = null;
-      setIsNearLeftEdge(false);
-      setIsNearRightEdge(false);
+      handleEdgeChange(false, false);
       hasDroppedRef.current = false;
       onDayChange(0);
     };
@@ -39,7 +46,7 @@ export const DayDropZone = ({
     return () => {
       document.removeEventListener("dragend", handleDragEnd);
     };
-  }, [onDayChange]);
+  }, [handleEdgeChange, onDayChange]);
 
   useEffect(
     () => () => {
@@ -56,6 +63,7 @@ export const DayDropZone = ({
       hover: (_, monitor) => {
         if (!monitor.isOver()) {
           hasDroppedRef.current = false;
+          handleEdgeChange(false, false);
           return;
         }
 
@@ -72,10 +80,9 @@ export const DayDropZone = ({
         const newDaysToMove = Math.round(deltaX / dayWidth);
 
         const isLeftEdge = clientOffset.x < edgeThreshold;
-        const isRightEdge = clientOffset.x > window.innerWidth - edgeThreshold;
+        const isRightEdge = clientOffset.x > window.innerWidth - edgeThreshold - 1;
 
-        setIsNearLeftEdge(isLeftEdge);
-        setIsNearRightEdge(isRightEdge);
+        handleEdgeChange(isLeftEdge, isRightEdge);
 
         if (isLeftEdge && onWeekChange) {
           if (!weekChangeTimerRef.current) {
@@ -110,8 +117,7 @@ export const DayDropZone = ({
           startX.current = null;
           daysToMove.current = 0;
           weekChangeRef.current = null;
-          setIsNearLeftEdge(false);
-          setIsNearRightEdge(false);
+          handleEdgeChange(false, false);
           hasDroppedRef.current = false;
           onDayChange(0);
           return { daysToMove: 0 };
@@ -144,8 +150,7 @@ export const DayDropZone = ({
         startX.current = null;
         daysToMove.current = 0;
         weekChangeRef.current = null;
-        setIsNearLeftEdge(false);
-        setIsNearRightEdge(false);
+        handleEdgeChange(false, false);
 
         return result;
       },
@@ -153,7 +158,7 @@ export const DayDropZone = ({
         isOver: !!monitor.isOver(),
       }),
     }),
-    [onDayChange, onDrop, onWeekChange],
+    [handleEdgeChange, onDayChange, onDrop, onWeekChange],
   );
 
   return (
@@ -162,46 +167,6 @@ export const DayDropZone = ({
       ref={drop as unknown as React.RefObject<HTMLDivElement>}
     >
       {children}
-
-      {isNearLeftEdge ? (
-        <div className="absolute left-0 top-0 w-[100px] bg-gradient-to-r h-screen from-blue-500/20 to-transparent z-[100] flex items-center justify-start">
-          <div className="ml-4 bg-blue-500 rounded-full p-2 text-white">
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                d="M15 19l-7-7 7-7"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-              />
-            </svg>
-          </div>
-        </div>
-      ) : null}
-
-      {isNearRightEdge ? (
-        <div className="absolute right-0 top-0 w-[100px] bg-gradient-to-l h-screen from-blue-500/20 to-transparent z-[100] flex items-center justify-end">
-          <div className="mr-4 bg-blue-500 rounded-full p-2 text-white">
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                d="M9 5l7 7-7 7"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-              />
-            </svg>
-          </div>
-        </div>
-      ) : null}
     </div>
   );
 };

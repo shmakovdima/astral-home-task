@@ -24,6 +24,8 @@ export const WeeklyCalendarView = () => {
   const [isDayChanged, setIsDayChanged] = useState(false);
   const [startDay, setStartDay] = useState<string | null>(null);
   const [targetDayIndex, setTargetDayIndex] = useState<number | null>(null);
+  const [isNearLeftEdge, setIsNearLeftEdge] = useState(false);
+  const [isNearRightEdge, setIsNearRightEdge] = useState(false);
 
   const [draggedCardHeight, setDraggedCardHeight] = useState<number | null>(
     null,
@@ -68,6 +70,11 @@ export const WeeklyCalendarView = () => {
       setTargetDayIndex(0);
       setIsDayChanged(true);
     }
+  }, []);
+
+  const handleEdgeChange = useCallback((isLeft: boolean, isRight: boolean) => {
+    setIsNearLeftEdge(isLeft);
+    setIsNearRightEdge(isRight);
   }, []);
 
   const handleDayChange = (daysToMove: number) => {
@@ -243,7 +250,7 @@ export const WeeklyCalendarView = () => {
         weekStart={weekStart}
       />
 
-      <div className="flex-1 overflow-hidden px-6">
+      <div className="flex-1 overflow-hidden px-6 relative">
         <DayDropZone
           onDayChange={handleDayChange}
           onDrop={(daysToMove: number) => {
@@ -252,6 +259,7 @@ export const WeeklyCalendarView = () => {
             }
           }}
           onWeekChange={handleWeekChange}
+          onEdgeChange={handleEdgeChange}
         >
           <div className="grid grid-cols-7 gap-0 overflow-hidden flex-1 h-full">
             {currentWeek.map((date, index) => {
@@ -324,6 +332,46 @@ export const WeeklyCalendarView = () => {
             })}
           </div>
         </DayDropZone>
+
+        {isNearLeftEdge ? (
+          <div className="absolute left-0 top-0 w-[100px] bg-gradient-to-r h-screen from-blue-500/20 to-transparent z-[100] flex items-center justify-start">
+            <div className="ml-4 bg-blue-500 rounded-full p-2 text-white">
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M15 19l-7-7 7-7"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                />
+              </svg>
+            </div>
+          </div>
+        ) : null}
+
+        {isNearRightEdge ? (
+          <div className="absolute right-0 top-0 w-[100px] bg-gradient-to-l h-screen from-blue-500/20 to-transparent z-[100] flex items-center justify-end">
+            <div className="mr-4 bg-blue-500 rounded-full p-2 text-white">
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M9 5l7 7-7 7"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                />
+              </svg>
+            </div>
+          </div>
+        ) : null}
       </div>
     </div>
   );
