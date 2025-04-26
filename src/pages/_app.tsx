@@ -4,6 +4,8 @@ import { Roboto } from "next/font/google";
 
 import { DnDProvider } from "@/providers/DnDProvider";
 import { ReactQueryProvider } from "@/providers/ReactQueryProvider";
+import { useReloadOnResize } from "@/hooks/useReloadOnResize";
+
 
 import "../styles/globals.css";
 
@@ -15,6 +17,7 @@ const roboto = Roboto({
 
 const MyApp = ({ Component, pageProps }: AppProps) => {
   const [isReady, setIsReady] = useState(false);
+  useReloadOnResize();
 
   useLayoutEffect(() => {
     if (typeof window !== "undefined") {
