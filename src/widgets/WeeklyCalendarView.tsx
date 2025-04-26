@@ -287,7 +287,7 @@ export const WeeklyCalendarView = () => {
                   key={format(date, "yyyy-MM-dd")}
                   style={{ minHeight: "calc(100vh - 180px)" }}
                 >
-                  {isTargetDay ? (
+                  {isTargetDay && !isNearRightEdge && !isNearLeftEdge ? (
                     <div
                       className="text-center text-gray-500 border-2 border-dashed border-blue-300 rounded-lg bg-blue-50/70 mb-2 flex items-center justify-center"
                       style={{
