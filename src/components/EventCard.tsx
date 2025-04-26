@@ -86,7 +86,7 @@ export const EventCard = memo(
             <div className="flex justify-between items-start">
               <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
             </div>
-            <p className="mt-2 text-sm text-gray-600">{description}</p>
+            <p className="mt-2 text-sm text-gray-600 line-clamp-2">{description}</p>
           </div>
         </div>
       </div>
