@@ -4,7 +4,7 @@ export const eventSchema = z.object({
   id: z.string().uuid(),
   title: z.string().min(1, "Title is required").max(100),
   description: z.string().max(500),
-  imageUrl: z.string().url("Invalid URL format"),
+  imageUrl: z.string(),
   timestamp: z.string().datetime({ offset: true }),
   duration: z.number().min(15).max(480),
   location: z.string().min(1, "Location is required").max(100),

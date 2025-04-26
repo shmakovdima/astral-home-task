@@ -182,8 +182,6 @@ export const DayDropZone = ({
       if (deltaY < Math.abs(deltaX) / 2) {
         e.preventDefault();
 
-        const rect = e.currentTarget.getBoundingClientRect();
-
         if (Math.abs(deltaX) > 5) {
           let direction: "left" | "right" | null = null;
 
@@ -207,7 +205,7 @@ export const DayDropZone = ({
     [startScrolling, stopScrolling],
   );
 
-  const handleTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
+  const handleTouchEnd = () => {
     if (!draggedEventId.current) return;
 
     const eventCard = document.querySelector(

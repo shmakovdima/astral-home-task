@@ -19,8 +19,7 @@ const events: EventsByDate = {
       id: "523e4567-e89b-12d3-a456-426614174004",
       title: "Client Meeting",
       description: "Review project progress and timeline adjustments.",
-      imageUrl:
-        "https://fastly.picsum.photos/id/908/1920/1080.jpg?hmac=MeG_oA1s75hHAL_4JzCioh6--zyFTWSCTxOhe8ugvXo",
+      imageUrl: "/images/meeting.jpg",
       timestamp: createEvent(dayAfterTomorrow, 11, 30),
       duration: 60,
       location: "Conference Room A",
@@ -32,8 +31,7 @@ const events: EventsByDate = {
       title: "Yoga Session",
       description:
         "Join for a relaxing yoga session to reduce stress and improve mindfulness.",
-      imageUrl:
-        "https://fastly.picsum.photos/id/392/1920/1080.jpg?hmac=Fvbf7C1Rcozg8EccwYPqsGkk_o6Bld2GQRDPZKWpd7g",
+      imageUrl: "/images/yoga.jpg",
       timestamp: createEvent(tomorrow, 12, 0),
       duration: 45,
       location: "Main Hall",
@@ -42,8 +40,7 @@ const events: EventsByDate = {
       id: "423e4567-e89b-12d3-a456-426614174003",
       title: "Product Demo",
       description: "Demo of UI improvements and performance optimizations.",
-      imageUrl:
-        "https://fastly.picsum.photos/id/249/1920/1080.jpg?hmac=cPMNdgGXRh6T_KhRMuaQjRtAx5cWRraELjtL2MHTfYs",
+      imageUrl: "/images/demo.jpg",
       timestamp: createEvent(tomorrow, 15, 30),
       duration: 90,
       location: "Training Room",
@@ -54,8 +51,7 @@ const events: EventsByDate = {
       id: "223e4567-e89b-12d3-a456-426614174001",
       title: "Team Standup",
       description: "Weekly standup meeting with the dev team.",
-      imageUrl:
-        "http://fastly.picsum.photos/id/737/1920/1080.jpg?hmac=aFzER8Y4wcWTrXVx2wVKSj10IqnygaF33gESj0WGDwI",
+      imageUrl: "/images/standup.jpg",
       timestamp: createEvent(today, 14, 0),
       duration: 45,
       location: "Meeting Room B",
@@ -65,8 +61,7 @@ const events: EventsByDate = {
       title: "Coffee with Alex",
       description:
         "Meet with Alex to brainstorm ideas for the upcoming product launch.",
-      imageUrl:
-        "https://fastly.picsum.photos/id/312/1920/1080.jpg?hmac=OD_fP9MUQN7uJ8NBR7tlii78qwHPUROGgohG4w16Kjw",
+      imageUrl: "/images/coffee.jpg",
       timestamp: createEvent(today, 9, 0),
       duration: 30,
       location: "Cafeteria",

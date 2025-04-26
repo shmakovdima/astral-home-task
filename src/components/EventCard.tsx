@@ -1,6 +1,6 @@
 import { memo, useMemo, useState } from "react";
-import Image from "next/image";
 import { useDrag } from "react-dnd";
+import Image from "next/image";
 
 import { type Event } from "@/models";
 
