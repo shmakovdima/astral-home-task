@@ -4,6 +4,7 @@ import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 
 import { type Event } from "@/models";
+import { cnTwMerge } from "@/helpers/cnTwMerge";
 
 type WeekEventCardProps = Event & {
   onDragStart?: (height: number) => void;
@@ -14,6 +15,21 @@ type WeekEventCardProps = Event & {
 
 type DropResult = {
   daysToMove: number;
+};
+
+const getScrollbarWidth = () => {
+  const outer = document.createElement("div");
+  outer.style.visibility = "hidden";
+  outer.style.overflow = "scroll";
+  document.body.appendChild(outer);
+
+  const inner = document.createElement("div");
+  outer.appendChild(inner);
+
+  const scrollbarWidth = outer.offsetWidth - inner.offsetWidth;
+  outer.parentNode?.removeChild(outer);
+
+  return scrollbarWidth;
 };
 
 export const WeekEventCard = memo(
@@ -34,12 +50,56 @@ export const WeekEventCard = memo(
     const [isExpanded, setIsExpanded] = useState(false);
     const cardRef = useRef<HTMLDivElement>(null);
     const hasEndedRef = useRef(false);
+    const scrollbarWidthRef = useRef(0);
 
     const getLayoutId = (prefix: string) => {
       if (disableAnimation) return undefined;
       if (isDragging) return undefined;
       return `${prefix}-${id}`;
     };
+
+    useEffect(() => {
+      scrollbarWidthRef.current = getScrollbarWidth();
+    }, []);
+
+    useEffect(() => {
+      if (isExpanded) {
+        const scrollY = window.scrollY;
+        const html = document.documentElement;
+        const body = document.body;
+
+        // Сохраняем текущую ширину вьюпорта
+        const vw = document.documentElement.clientWidth;
+
+        // Фиксируем body в текущей позиции
+        body.style.position = "fixed";
+        body.style.top = `-${scrollY}px`;
+        body.style.width = `${vw}px`;
+        html.style.width = `${vw}px`;
+      } else {
+        const body = document.body;
+        const html = document.documentElement;
+        const scrollY = parseInt(body.style.top || "0");
+
+        // Восстанавливаем состояние
+        body.style.position = "";
+        body.style.top = "";
+        body.style.width = "";
+        html.style.width = "";
+
+        // Восстанавливаем позицию скролла
+        window.scrollTo(0, scrollY * -1);
+      }
+
+      return () => {
+        const body = document.body;
+        const html = document.documentElement;
+        body.style.position = "";
+        body.style.top = "";
+        body.style.width = "";
+        html.style.width = "";
+      };
+    }, [isExpanded]);
 
     useEffect(() => {
       onExpandChange?.(isExpanded);
@@ -189,7 +249,9 @@ export const WeekEventCard = memo(
               />
               <motion.div
                 animate={{ opacity: 1 }}
-                className="fixed inset-0 flex items-center justify-center pointer-events-none"
+                className={cnTwMerge(`fixed inset-0 flex items-center justify-center`, {
+                  'pointer-events-none': isExpanded
+                })}
                 exit={{ opacity: 0 }}
                 initial={{ opacity: 0 }}
                 transition={{ duration: 0.3 }}

@@ -54,7 +54,7 @@ export const DayEventCard = memo(
     const getLayoutId = (prefix: string) => {
       if (disableAnimation) return undefined;
       if (isDragging) return undefined;
-      return `${prefix}-${id}`;
+      return `day-${prefix}-${id}`;
     };
 
     useEffect(() => {
