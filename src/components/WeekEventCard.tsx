@@ -179,7 +179,7 @@ export const WeekEventCard = memo(
           ref={dragRef}
         >
           <motion.div
-            className="flex flex-col gap-4 w-full"
+            className="flex flex-col w-full"
             layoutId={getLayoutId("card")}
           >
             <motion.div
@@ -215,7 +215,7 @@ export const WeekEventCard = memo(
                 layoutId={getLayoutId("title-container")}
               >
                 <motion.h3
-                  className="text-[18px] leading-[22px] font-semibold text-gray-900 w-full whitespace-nowrap text-ellipsis"
+                  className="text-[18px] break-all leading-[22px] font-semibold line-clamp-1 text-gray-900 w-full text-ellipsis"
                   layoutId={getLayoutId("title")}
                 >
                   {title}
