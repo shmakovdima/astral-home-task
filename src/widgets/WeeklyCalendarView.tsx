@@ -54,11 +54,11 @@ export const WeeklyCalendarView = () => {
           weekStart={weekStart}
         />
 
-        <div className="grid grid-cols-7 gap-2">
+        <div className="grid grid-cols-7 gap-0">
           {currentWeek.map((date) => (
             <div
               className={cnTwMerge(
-                "flex flex-col items-center justify-center transition-colors duration-200 py-2 px-3 rounded-lg",
+                "flex flex-col items-center justify-center transition-colors duration-200 py-2 px-3 rounded-lg mx-1",
                 isToday(date)
                   ? "bg-gradient-to-br from-indigo-600 to-violet-600"
                   : "bg-gray-100/10",
@@ -72,7 +72,7 @@ export const WeeklyCalendarView = () => {
         </div>
       </div>
 
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-hidden p-6">
         <div className="grid grid-cols-7 gap-0 overflow-hidden">
           {currentWeek.map((date, index) => {
             const events = getEventsForDay(date);
@@ -80,7 +80,7 @@ export const WeeklyCalendarView = () => {
 
             return (
               <div
-                className={`min-h-[500px] p-4 ${
+                className={`flex flex-col min-h-[500px] gap-4 p-2 ${
                   isToday(date) ? "bg-blue-50" : ""
                 } ${!isLastDay ? "border-r border-gray-200" : ""}`}
                 key={format(date, "yyyy-MM-dd")}
