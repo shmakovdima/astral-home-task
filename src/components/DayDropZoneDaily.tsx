@@ -5,12 +5,14 @@ type DayDropZoneDailyProps = {
   children: React.ReactNode;
   onDayChange: (daysToMove: number) => void;
   onDrop?: (daysToMove: number) => void;
+  onReset?: () => void;
 };
 
 export const DayDropZoneDaily = ({
   children,
   onDayChange,
   onDrop,
+  onReset,
 }: DayDropZoneDailyProps) => {
   const isDraggingRef = useRef(false);
   const lastDirectionRef = useRef<"left" | "right" | null>(null);
@@ -43,19 +45,6 @@ export const DayDropZoneDaily = ({
     [],
   );
 
-  const [{ isOver }, drop] = useDrop(() => ({
-    accept: "event",
-    drop: () => {
-      const totalDaysMoved = daysMovedRef.current;
-      cleanupDragState();
-      onDrop?.(totalDaysMoved);
-      return { daysToMove: totalDaysMoved };
-    },
-    collect: (monitor) => ({
-      isOver: !!monitor.isOver(),
-    }),
-  }));
-
   const cleanupDragState = useCallback(() => {
     isDraggingRef.current = false;
     lastDirectionRef.current = null;
@@ -77,6 +66,48 @@ export const DayDropZoneDaily = ({
     daysMovedRef.current = 0;
   }, []);
 
+  const stopScrolling = useCallback(() => {
+    if (scrollIntervalRef.current) {
+      clearInterval(scrollIntervalRef.current);
+      scrollIntervalRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => {
+    const handleDragEnd = () => {
+      stopScrolling();
+      cleanupDragState();
+      onReset?.();
+    };
+
+    const handleTouchEndGlobal = () => {
+      stopScrolling();
+      cleanupDragState();
+      onReset?.();
+    };
+
+    document.addEventListener("dragend", handleDragEnd);
+    document.addEventListener("touchend", handleTouchEndGlobal);
+
+    return () => {
+      document.removeEventListener("dragend", handleDragEnd);
+      document.removeEventListener("touchend", handleTouchEndGlobal);
+    };
+  }, [stopScrolling, cleanupDragState, onReset]);
+
+  const [{ isOver }, drop] = useDrop(() => ({
+    accept: "event",
+    drop: () => {
+      const totalDaysMoved = daysMovedRef.current;
+      cleanupDragState();
+      onDrop?.(totalDaysMoved);
+      return { daysToMove: totalDaysMoved };
+    },
+    collect: (monitor) => ({
+      isOver: !!monitor.isOver(),
+    }),
+  }));
+
   const startScrolling = useCallback(
     (direction: "left" | "right") => {
       if (scrollIntervalRef.current) {
@@ -94,13 +125,6 @@ export const DayDropZoneDaily = ({
     },
     [onDayChange],
   );
-
-  const stopScrolling = useCallback(() => {
-    if (scrollIntervalRef.current) {
-      clearInterval(scrollIntervalRef.current);
-      scrollIntervalRef.current = null;
-    }
-  }, []);
 
   const handleDragOver = useCallback(
     (e: React.DragEvent) => {
@@ -248,7 +272,7 @@ export const DayDropZoneDaily = ({
 
   return (
     <div
-      className={`relative transition-colors duration-200 min-h-[calc(100vh_-_200px)] ${
+      className={`relative transition-colors duration-200  ${
         isOver ? "bg-blue-50" : ""
       }`}
       onClick={(e) => e.stopPropagation()}

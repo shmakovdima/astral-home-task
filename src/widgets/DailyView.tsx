@@ -85,11 +85,17 @@ export const DailyView = () => {
     [startDay, activeDay, updateEventDate],
   );
 
+  const handleReset = useCallback(() => {
+    setDraggedEventId(null);
+    setIsDayChanged(false);
+    setStartDay(null);
+  }, []);
+
   const dayEvents = eventsByDate?.[activeDay] || [];
   const isCurrentDay = isSameDay(new Date(activeDay), new Date());
 
   return (
-    <div className="flex flex-col gap-4" ref={ref}>
+    <div className="flex flex-col gap-4 min-h-[calc(100vh_-_200px)]" ref={ref}>
       <DaysNavigation activeDay={activeDay} setActiveDay={setActiveDay} />
       <div className="flex flex-col gap-4 p-4">
         <DateHeader date={activeDay} />
@@ -100,6 +106,7 @@ export const DailyView = () => {
               handleEventDrop(draggedEventId, daysToMove);
             }
           }}
+          onReset={handleReset}
         >
           <div className="grid grid-cols-1 gap-4">
             {isDayChanged && draggedEventId ? (
