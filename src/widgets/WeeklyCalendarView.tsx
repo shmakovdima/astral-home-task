@@ -12,6 +12,7 @@ import {
 import { DayDropZone } from "@/components/DayDropZone";
 import { WeekEventCard } from "@/components/WeekEventCard";
 import { WeeksHeader } from "@/components/WeeksHeader";
+import { WeeksNavigation } from "@/components/WeeksNavigation";
 import { cnTwMerge } from "@/helpers/cnTwMerge";
 import { useAllEvents } from "@/hooks/useEvents";
 import { useUpdateEventDate } from "@/hooks/useUpdateEventDate";
@@ -242,33 +243,15 @@ export const WeeklyCalendarView = () => {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="bg-gradient-to-r from-blue-500 to-purple-500 p-6 text-white overflow-hidden">
-        <WeeksHeader
-          onNextWeek={handleNextWeek}
-          onPrevWeek={handlePrevWeek}
-          weekEnd={weekEnd}
-          weekStart={weekStart}
-        />
+      <WeeksNavigation
+        currentWeek={currentWeek}
+        onNextWeek={handleNextWeek}
+        onPrevWeek={handlePrevWeek}
+        weekEnd={weekEnd}
+        weekStart={weekStart}
+      />
 
-        <div className="grid grid-cols-7 gap-0">
-          {currentWeek.map((date) => (
-            <div
-              className={cnTwMerge(
-                "flex flex-col items-center justify-center transition-colors duration-200 py-2 px-3 rounded-lg mx-1",
-                isToday(date)
-                  ? "bg-gradient-to-br from-indigo-600 to-violet-600"
-                  : "bg-gray-100/10",
-              )}
-              key={format(date, "yyyy-MM-dd")}
-            >
-              <span className="text-sm">{format(date, "EEE")}</span>
-              <span className="text-xl font-bold mt-1">{date.getDate()}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="flex-1 overflow-hidden p-6">
+      <div className="flex-1 overflow-hidden px-6">
         <DayDropZone
           onDayChange={handleDayChange}
           onDrop={(daysToMove: number) => {
@@ -278,21 +261,25 @@ export const WeeklyCalendarView = () => {
           }}
           onWeekChange={handleWeekChange}
         >
-          <div className="grid grid-cols-7 gap-0 overflow-hidden">
+          <div className="grid grid-cols-7 gap-0 overflow-hidden flex-1 h-full">
             {currentWeek.map((date, index) => {
               const events = getEventsForDay(date);
               const isLastDay = index === currentWeek.length - 1;
               const dateString = format(date, "yyyy-MM-dd");
               const isTargetDay = targetDayIndex === index && isDayChanged;
+              const hasEvents = events.length > 0;
 
               return (
                 <div
-                  className={`flex flex-col min-h-[500px] gap-4 p-2 ${
-                    isToday(date) ? "bg-blue-50" : ""
-                  } ${isTargetDay ? "bg-blue-100/50" : ""} ${
-                    !isLastDay ? "border-r border-gray-200" : ""
-                  } transition-colors duration-200`}
+                  className={cnTwMerge(
+                    "flex px-2 pt-2 gap-2 flex-col h-full transition-colors duration-200",
+                    hasEvents ? "pb-6" : "pb-2",
+                    isToday(date) ? "bg-blue-50" : "",
+                    isTargetDay ? "bg-blue-100/50" : "",
+                    !isLastDay ? "border-r border-gray-200" : "",
+                  )}
                   key={format(date, "yyyy-MM-dd")}
+                  style={{ minHeight: "calc(100vh - 180px)" }}
                 >
                   {isTargetDay ? (
                     <div
