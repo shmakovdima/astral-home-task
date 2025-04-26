@@ -1,10 +1,10 @@
 import { useCallback, useState } from "react";
 import { addDays, format, isSameDay, set } from "date-fns";
 
-import { DateHeader } from "@/components/DateHeader";
-import { DayDropZoneDaily } from "@/components/DayDropZoneDaily";
+import { DayDropZone } from "@/components/DayDropZone";
+import { DayEventCard } from "@/components/DayEventCard";
+import { DayHeader } from "@/components/DayHeader";
 import { DaysNavigation } from "@/components/DaysNavigation";
-import { EventCard } from "@/components/EventCard";
 import { useAllEvents } from "@/hooks/useEvents";
 import { useSwipeNavigation } from "@/hooks/useSwipeNavigation";
 import { useUpdateEventDate } from "@/hooks/useUpdateEventDate";
@@ -16,7 +16,6 @@ export const DailyView = () => {
   const [draggedHeight, setDraggedHeight] = useState<number>(0);
   const [isDayChanged, setIsDayChanged] = useState(false);
   const [startDay, setStartDay] = useState<string | null>(null);
-  const [isAnyCardExpanded, setIsAnyCardExpanded] = useState(false);
   const { data: eventsByDate } = useAllEvents();
   const { mutate: updateEventDate } = useUpdateEventDate();
 
@@ -42,7 +41,7 @@ export const DailyView = () => {
         handleNextDay();
       }
     },
-    minSwipeDistance: 50
+    minSwipeDistance: 50,
   });
 
   const handleDayChange = (daysToMove: number) => {
@@ -120,8 +119,8 @@ export const DailyView = () => {
     <div className="flex flex-col gap-4 min-h-[calc(100vh_-_200px)]" ref={ref}>
       <DaysNavigation activeDay={activeDay} setActiveDay={setActiveDay} />
       <div className="flex flex-col gap-4 p-4">
-        <DateHeader date={activeDay} />
-        <DayDropZoneDaily
+        <DayHeader date={activeDay} />
+        <DayDropZone
           onDayChange={handleDayChange}
           onDrop={(daysToMove) => {
             if (draggedEventId) {
@@ -131,7 +130,7 @@ export const DailyView = () => {
         >
           <div className="grid grid-cols-1 gap-4">
             {isDayChanged && draggedEventId ? (
-              <div 
+              <div
                 className="text-center text-gray-500 border-2 border-dashed border-blue-200 rounded-lg bg-blue-50/50 flex items-center justify-center"
                 style={{ height: draggedHeight }}
               >
@@ -158,9 +157,12 @@ export const DailyView = () => {
 
             {dayEvents.length > 0
               ? dayEvents.map((event: Event) => (
-                  <EventCard
+                  <DayEventCard
                     key={event.id}
                     {...event}
+                    disableAnimation={
+                      !!draggedEventId && draggedEventId !== event.id
+                    }
                     onDragEnd={(daysToMove) =>
                       handleEventDrop(event.id, daysToMove)
                     }
@@ -169,10 +171,6 @@ export const DailyView = () => {
                       setDraggedHeight(height);
                       setStartDay(activeDay);
                     }}
-                    onExpandChange={(expanded) => {
-                      setIsAnyCardExpanded(expanded);
-                    }}
-                    disableAnimation={!!draggedEventId && draggedEventId !== event.id}
                   />
                 ))
               : !draggedEventId && (
@@ -200,7 +198,7 @@ export const DailyView = () => {
                   </div>
                 )}
           </div>
-        </DayDropZoneDaily>
+        </DayDropZone>
       </div>
     </div>
   );

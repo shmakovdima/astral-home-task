@@ -9,7 +9,7 @@ import {
   startOfWeek,
 } from "date-fns";
 
-import { DayDropZone } from "@/components/DayDropZone";
+import { WeekDropZone } from "@/components/WeekDropZone";
 import { WeekEventCard } from "@/components/WeekEventCard";
 import { WeeksNavigation } from "@/components/WeeksNavigation";
 import { cnTwMerge } from "@/helpers/cnTwMerge";
@@ -257,7 +257,7 @@ export const WeeklyCalendarView = () => {
       />
 
       <div className="flex-1 overflow-hidden px-6 relative">
-        <DayDropZone
+        <WeekDropZone
           onDayChange={handleDayChange}
           onDrop={(daysToMove: number) => {
             if (draggedEventId) {
@@ -337,7 +337,7 @@ export const WeeklyCalendarView = () => {
               );
             })}
           </div>
-        </DayDropZone>
+        </WeekDropZone>
 
         {isNearLeftEdge ? (
           <div className="absolute left-0 top-0 w-[100px] bg-gradient-to-r h-screen from-blue-500/20 to-transparent z-[100] flex items-center justify-start">

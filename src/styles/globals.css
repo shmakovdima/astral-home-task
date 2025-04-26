@@ -22,7 +22,6 @@
 html,
 body {
   overscroll-behavior: none;
-  overflow-x: hidden;
   touch-action: pan-y pinch-zoom;
   min-height: 100vh;
 }

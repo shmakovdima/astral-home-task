@@ -17,8 +17,10 @@ const events: EventsByDate = {
   [format(dayAfterTomorrow, "yyyy-MM-dd")]: [
     {
       id: "523e4567-e89b-12d3-a456-426614174004",
-      title: "Client Meeting TEST LONG TITLE TEST LONG TITLE TEST LONG TITLE TEST LONG TITLE TEST LONG TITLE TEST LONG TITLE",
-      description: "Review project progress and timeline adjustments.  TEST LONG TITLE TEST LONG TITLE TEST LONG TITLE TEST LONG TITLE TEST LONG TITLE TEST LONG TITLE",
+      title:
+        "Client Meeting TEST LONG TITLE TEST LONG TITLE TEST LONG TITLE TEST LONG TITLE TEST LONG TITLE TEST LONG TITLE",
+      description:
+        "Review project progress and timeline adjustments.  TEST LONG TITLE TEST LONG TITLE TEST LONG TITLE TEST LONG TITLE TEST LONG TITLE TEST LONG TITLE",
       imageUrl: "/images/meeting.jpg",
       timestamp: createEvent(dayAfterTomorrow, 11, 30),
       duration: 60,

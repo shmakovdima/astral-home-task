@@ -22,17 +22,20 @@ export const useSwipeNavigation = ({
     isSwiping.current = false;
   }, []);
 
-  const handleTouchStart = useCallback((event: TouchEvent) => {
-    if (isDisabled) return;
-    if (document.querySelector('.bg-black\\/40')) return;
-    touchStartX.current = event.touches[0].clientX;
-    isSwiping.current = true;
-  }, [isDisabled]);
+  const handleTouchStart = useCallback(
+    (event: TouchEvent) => {
+      if (isDisabled) return;
+      if (document.querySelector(".bg-black\\/40")) return;
+      touchStartX.current = event.touches[0].clientX;
+      isSwiping.current = true;
+    },
+    [isDisabled],
+  );
 
   const handleTouchMove = useCallback(
     (event: TouchEvent) => {
       if (isDisabled || !isSwiping.current || !touchStartX.current) return;
-      if (document.querySelector('.bg-black\\/40')) return;
+      if (document.querySelector(".bg-black\\/40")) return;
 
       const touchEndX = event.touches[0].clientX;
       const deltaX = touchEndX - touchStartX.current;
@@ -47,7 +50,7 @@ export const useSwipeNavigation = ({
   const handleTouchEnd = useCallback(
     (event: TouchEvent) => {
       if (isDisabled || !isSwiping.current || !touchStartX.current) return;
-      if (document.querySelector('.bg-black\\/40')) return;
+      if (document.querySelector(".bg-black\\/40")) return;
 
       const touchEndX = event.changedTouches[0].clientX;
       const deltaX = touchEndX - touchStartX.current;

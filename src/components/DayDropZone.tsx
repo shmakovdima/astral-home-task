@@ -1,170 +1,334 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useDrop } from "react-dnd";
 
 type DayDropZoneProps = {
   children: React.ReactNode;
   onDayChange: (daysToMove: number) => void;
-  onDrop: (daysToMove: number) => void;
-  onWeekChange?: (direction: "prev" | "next") => void;
-  onEdgeChange?: (isLeft: boolean, isRight: boolean) => void;
+  onDrop?: (daysToMove: number) => void;
 };
 
 export const DayDropZone = ({
   children,
   onDayChange,
   onDrop,
-  onWeekChange,
-  onEdgeChange,
 }: DayDropZoneProps) => {
-  const startX = useRef<number | null>(null);
-  const daysToMove = useRef<number>(0);
-  const weekChangeTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const hasDroppedRef = useRef(false);
-  const edgeThreshold = 50;
-  const weekChangeRef = useRef<"prev" | "next" | null>(null);
-
-  const handleEdgeChange = useCallback(
-    (left: boolean, right: boolean) => {
-      onEdgeChange?.(left, right);
-    },
-    [onEdgeChange],
-  );
-
-  useEffect(() => {
-    const handleDragEnd = () => {
-      startX.current = null;
-      daysToMove.current = 0;
-      weekChangeRef.current = null;
-      handleEdgeChange(false, false);
-      hasDroppedRef.current = false;
-      onDayChange(0);
-    };
-
-    document.addEventListener("dragend", handleDragEnd);
-
-    return () => {
-      document.removeEventListener("dragend", handleDragEnd);
-    };
-  }, [handleEdgeChange, onDayChange]);
+  const isDraggingRef = useRef(false);
+  const lastDirectionRef = useRef<"left" | "right" | null>(null);
+  const scrollIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const daysMovedRef = useRef(0);
+  const [lastDragPosition, setLastDragPosition] = useState<number | null>(null);
+  const dropTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
+  const draggedEventId = useRef<string | null>(null);
+  const isOverDropZone = useRef(false);
 
   useEffect(
     () => () => {
-      if (weekChangeTimerRef.current) {
-        clearTimeout(weekChangeTimerRef.current);
+      if (scrollIntervalRef.current) {
+        clearInterval(scrollIntervalRef.current);
       }
+
+      if (dropTimeoutRef.current) {
+        clearTimeout(dropTimeoutRef.current);
+      }
+
+      isDraggingRef.current = false;
+      lastDirectionRef.current = null;
+      setLastDragPosition(null);
+      daysMovedRef.current = 0;
+      touchStartX.current = null;
+      touchStartY.current = null;
+      draggedEventId.current = null;
+      isOverDropZone.current = false;
     },
     [],
   );
 
-  const [{ isOver }, drop] = useDrop(
-    () => ({
-      accept: "event",
-      hover: (_, monitor) => {
-        if (!monitor.isOver()) {
-          hasDroppedRef.current = false;
-          handleEdgeChange(false, false);
-          return;
-        }
+  const cleanupDragState = useCallback(() => {
+    isDraggingRef.current = false;
+    lastDirectionRef.current = null;
+    setLastDragPosition(null);
+    touchStartX.current = null;
+    touchStartY.current = null;
+    draggedEventId.current = null;
+    isOverDropZone.current = false;
 
-        const clientOffset = monitor.getClientOffset();
-        if (!clientOffset) return;
+    if (scrollIntervalRef.current) {
+      clearInterval(scrollIntervalRef.current);
+      scrollIntervalRef.current = null;
+    }
 
-        if (startX.current === null) {
-          startX.current = clientOffset.x;
-          return;
-        }
+    if (dropTimeoutRef.current) {
+      clearTimeout(dropTimeoutRef.current);
+      dropTimeoutRef.current = null;
+    }
 
-        const deltaX = clientOffset.x - startX.current;
-        const dayWidth = window.innerWidth / 7;
-        const newDaysToMove = Math.round(deltaX / dayWidth);
+    daysMovedRef.current = 0;
+  }, []);
 
-        const isLeftEdge = clientOffset.x < edgeThreshold;
+  const stopScrolling = useCallback(() => {
+    if (scrollIntervalRef.current) {
+      clearInterval(scrollIntervalRef.current);
+      scrollIntervalRef.current = null;
+    }
+  }, []);
 
-        const isRightEdge =
-          clientOffset.x > window.innerWidth - edgeThreshold - 1;
+  useEffect(() => {
+    const handleDragEnd = () => {
+      if (!draggedEventId.current) return;
 
-        handleEdgeChange(isLeftEdge, isRightEdge);
+      const eventCard = document.querySelector(
+        `.event-card[data-event-id="${draggedEventId.current}"]`,
+      ) as HTMLElement;
 
-        if (isLeftEdge && onWeekChange) {
-          if (!weekChangeTimerRef.current) {
-            weekChangeTimerRef.current = setTimeout(() => {
-              onWeekChange("prev");
-              weekChangeRef.current = "prev";
-              startX.current = clientOffset.x;
-              weekChangeTimerRef.current = null;
-            }, 500);
-          }
-        } else if (isRightEdge && onWeekChange) {
-          if (!weekChangeTimerRef.current) {
-            weekChangeTimerRef.current = setTimeout(() => {
-              onWeekChange("next");
-              weekChangeRef.current = "next";
-              startX.current = clientOffset.x;
-              weekChangeTimerRef.current = null;
-            }, 500);
-          }
-        } else if (weekChangeTimerRef.current) {
-          clearTimeout(weekChangeTimerRef.current);
-          weekChangeTimerRef.current = null;
-        }
+      if (eventCard) {
+        eventCard.style.transform = "";
+        eventCard.style.opacity = "";
+      }
 
-        if (newDaysToMove !== daysToMove.current) {
-          daysToMove.current = newDaysToMove;
-          onDayChange(newDaysToMove);
-        }
-      },
-      drop: (_, monitor) => {
-        if (!monitor.isOver()) {
-          startX.current = null;
-          daysToMove.current = 0;
-          weekChangeRef.current = null;
-          handleEdgeChange(false, false);
-          hasDroppedRef.current = false;
-          onDayChange(0);
-          return { daysToMove: 0 };
-        }
+      cleanupDragState();
+      onDrop?.(0);
+    };
 
-        if (weekChangeTimerRef.current) {
-          clearTimeout(weekChangeTimerRef.current);
-          weekChangeTimerRef.current = null;
-        }
+    const handleTouchEndGlobal = () => {
+      stopScrolling();
+      cleanupDragState();
+      onDrop?.(0);
+    };
 
-        let finalDaysToMove = daysToMove.current;
+    document.addEventListener("dragend", handleDragEnd);
+    document.addEventListener("touchend", handleTouchEndGlobal);
 
-        if (weekChangeRef.current === "prev") {
-          finalDaysToMove = -7 + (finalDaysToMove % 7);
-        } else if (weekChangeRef.current === "next") {
-          finalDaysToMove = 7 + (finalDaysToMove % 7);
-        }
+    return () => {
+      document.removeEventListener("dragend", handleDragEnd);
+      document.removeEventListener("touchend", handleTouchEndGlobal);
+    };
+  }, [stopScrolling, cleanupDragState, onDrop]);
 
-        const result = { daysToMove: finalDaysToMove };
-
-        if (!hasDroppedRef.current) {
-          hasDroppedRef.current = true;
-          onDrop(finalDaysToMove);
-
-          setTimeout(() => {
-            hasDroppedRef.current = false;
-          }, 200);
-        }
-
-        startX.current = null;
-        daysToMove.current = 0;
-        weekChangeRef.current = null;
-        handleEdgeChange(false, false);
-
-        return result;
-      },
-      collect: (monitor) => ({
-        isOver: !!monitor.isOver(),
-      }),
+  const [{ isOver }, drop] = useDrop(() => ({
+    accept: "event",
+    drop: () => {
+      if (!isDraggingRef.current) return;
+      const totalDaysMoved = daysMovedRef.current;
+      cleanupDragState();
+      onDrop?.(totalDaysMoved);
+      return { daysToMove: totalDaysMoved };
+    },
+    collect: (monitor) => ({
+      isOver: !!monitor.isOver(),
     }),
-    [handleEdgeChange, onDayChange, onDrop, onWeekChange],
+  }));
+
+  useEffect(() => {
+    isOverDropZone.current = isOver;
+  }, [isOver]);
+
+  const startScrolling = useCallback(
+    (direction: "left" | "right") => {
+      if (scrollIntervalRef.current) {
+        clearInterval(scrollIntervalRef.current);
+      }
+
+      const move = direction === "left" ? -1 : 1;
+      daysMovedRef.current += move;
+      onDayChange(daysMovedRef.current);
+
+      scrollIntervalRef.current = setInterval(() => {
+        daysMovedRef.current += move;
+        onDayChange(daysMovedRef.current);
+      }, 500);
+    },
+    [onDayChange],
+  );
+
+  const handleDragOver = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      if (!isDraggingRef.current) {
+        isDraggingRef.current = true;
+        daysMovedRef.current = 0;
+        setLastDragPosition(e.clientX);
+
+        const target = e.target as HTMLElement;
+        const eventCard = target.closest(".event-card") as HTMLElement;
+
+        if (eventCard) {
+          const eventId = eventCard.dataset.eventId;
+
+          if (eventId) {
+            draggedEventId.current = eventId;
+            eventCard.style.transform = "scale(0.95)";
+            eventCard.style.opacity = "0.8";
+          }
+        }
+
+        return;
+      }
+
+      const rect = e.currentTarget.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const width = rect.width;
+
+      if (lastDragPosition !== null) {
+        const movement = e.clientX - lastDragPosition;
+
+        if (Math.abs(movement) > 5) {
+          let direction: "left" | "right" | null = null;
+
+          if (x < width * 0.2 || movement < 0) {
+            direction = "left";
+          } else if (x > width * 0.8 || movement > 0) {
+            direction = "right";
+          }
+
+          if (direction) {
+            if (direction !== lastDirectionRef.current) {
+              lastDirectionRef.current = direction;
+              startScrolling(direction);
+            }
+          } else {
+            stopScrolling();
+          }
+        }
+      }
+
+      setLastDragPosition(e.clientX);
+    },
+    [startScrolling, stopScrolling, lastDragPosition],
+  );
+
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement;
+    const eventCard = target.closest(".event-card") as HTMLElement;
+    if (!eventCard) return;
+
+    const eventId = eventCard.dataset.eventId;
+    if (!eventId) return;
+
+    draggedEventId.current = eventId;
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+    isDraggingRef.current = true;
+    daysMovedRef.current = 0;
+    lastDirectionRef.current = null;
+
+    eventCard.style.transform = "scale(0.95)";
+    eventCard.style.opacity = "0.8";
+  };
+
+  const handleTouchMove = useCallback(
+    (e: React.TouchEvent) => {
+      if (
+        !isDraggingRef.current ||
+        !touchStartX.current ||
+        !touchStartY.current
+      ) {
+        return;
+      }
+
+      const touch = e.touches[0];
+      const deltaX = touch.clientX - touchStartX.current;
+      const deltaY = Math.abs(touch.clientY - touchStartY.current);
+
+      if (deltaY < Math.abs(deltaX) / 2) {
+        e.preventDefault();
+
+        if (Math.abs(deltaX) > 5) {
+          let direction: "left" | "right" | null = null;
+
+          if (deltaX < 0) {
+            direction = "left";
+          } else if (deltaX > 0) {
+            direction = "right";
+          }
+
+          if (direction) {
+            if (direction !== lastDirectionRef.current) {
+              lastDirectionRef.current = direction;
+              startScrolling(direction);
+            }
+          } else {
+            stopScrolling();
+          }
+        }
+      }
+    },
+    [startScrolling, stopScrolling],
+  );
+
+  const handleTouchEnd = () => {
+    if (!draggedEventId.current) return;
+
+    const eventCard = document.querySelector(
+      `.event-card[data-event-id="${draggedEventId.current}"]`,
+    ) as HTMLElement;
+
+    if (eventCard) {
+      eventCard.style.transform = "";
+      eventCard.style.opacity = "";
+    }
+
+    if (daysMovedRef.current !== 0) {
+      onDrop?.(daysMovedRef.current);
+    }
+
+    draggedEventId.current = null;
+    isDraggingRef.current = false;
+    touchStartX.current = null;
+    touchStartY.current = null;
+    daysMovedRef.current = 0;
+    lastDirectionRef.current = null;
+    stopScrolling();
+  };
+
+  const handleDragLeave = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      if (dropTimeoutRef.current) {
+        clearTimeout(dropTimeoutRef.current);
+      }
+
+      dropTimeoutRef.current = setTimeout(() => {
+        if (!isOverDropZone.current) {
+          cleanupDragState();
+          onDrop?.(0);
+        }
+      }, 100);
+    },
+    [cleanupDragState, onDrop],
+  );
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      if (!isDraggingRef.current) return;
+
+      const totalDaysMoved = daysMovedRef.current;
+      cleanupDragState();
+      onDrop?.(totalDaysMoved);
+    },
+    [cleanupDragState, onDrop],
   );
 
   return (
     <div
-      className={`w-full h-full relative ${isOver ? "bg-blue-50/30" : ""}`}
+      className={`relative transition-colors duration-200  ${
+        isOver ? "bg-blue-50" : ""
+      }`}
+      onClick={(e) => e.stopPropagation()}
+      onDragLeave={handleDragLeave}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+      onTouchEnd={handleTouchEnd}
+      onTouchMove={handleTouchMove}
+      onTouchStart={handleTouchStart}
       ref={drop as unknown as React.RefObject<HTMLDivElement>}
     >
       {children}
