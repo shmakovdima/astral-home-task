@@ -19,8 +19,9 @@ export const DayDropZone = ({
   const [isNearLeftEdge, setIsNearLeftEdge] = useState(false);
   const [isNearRightEdge, setIsNearRightEdge] = useState(false);
   const weekChangeTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const hasDroppedRef = useRef(false); // Add this line to define the reference
+  const hasDroppedRef = useRef(false);
   const edgeThreshold = 100; // пикселей от края экрана
+  const weekChangeRef = useRef<"prev" | "next" | null>(null);
 
   // Очистка таймера при размонтировании
   useEffect(
@@ -65,9 +66,9 @@ export const DayDropZone = ({
           if (!weekChangeTimerRef.current) {
             weekChangeTimerRef.current = setTimeout(() => {
               onWeekChange("prev");
+              weekChangeRef.current = "prev";
               // Сбрасываем начальную позицию после перехода на другую неделю
-              startX.current = null;
-              daysToMove.current = 0;
+              startX.current = clientOffset.x;
               weekChangeTimerRef.current = null;
             }, 500); // Задержка перед переходом на другую неделю
           }
@@ -75,9 +76,9 @@ export const DayDropZone = ({
           if (!weekChangeTimerRef.current) {
             weekChangeTimerRef.current = setTimeout(() => {
               onWeekChange("next");
+              weekChangeRef.current = "next";
               // Сбрасываем начальную позицию после перехода на другую неделю
-              startX.current = null;
-              daysToMove.current = 0;
+              startX.current = clientOffset.x;
               weekChangeTimerRef.current = null;
             }, 500); // Задержка перед переходом на другую неделю
           }
@@ -99,12 +100,22 @@ export const DayDropZone = ({
           weekChangeTimerRef.current = null;
         }
 
-        const result = { daysToMove: daysToMove.current };
+        // Учитываем смещение недели при расчете итогового перемещения
+        let finalDaysToMove = daysToMove.current;
+
+        // Добавляем смещение в зависимости от перехода на другую неделю
+        if (weekChangeRef.current === "prev") {
+          finalDaysToMove = -7 + (finalDaysToMove % 7);
+        } else if (weekChangeRef.current === "next") {
+          finalDaysToMove = 7 + (finalDaysToMove % 7);
+        }
+
+        const result = { daysToMove: finalDaysToMove };
 
         // Вызываем onDrop только один раз
         if (!hasDroppedRef.current) {
           hasDroppedRef.current = true;
-          onDrop(daysToMove.current);
+          onDrop(finalDaysToMove);
 
           // Сбрасываем флаг через небольшую задержку
           setTimeout(() => {
@@ -114,6 +125,7 @@ export const DayDropZone = ({
 
         startX.current = null;
         daysToMove.current = 0;
+        weekChangeRef.current = null;
         setIsNearLeftEdge(false);
         setIsNearRightEdge(false);
 

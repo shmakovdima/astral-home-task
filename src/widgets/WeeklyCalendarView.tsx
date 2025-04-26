@@ -147,30 +147,27 @@ export const WeeklyCalendarView = () => {
           `Обработка перетаскивания события ${eventId} на ${daysToMove} дней`,
         );
 
-        // Находим индекс исходного дня
-        const startDayIndex = currentWeek.findIndex(
-          (day) => format(day, "yyyy-MM-dd") === startDay,
-        );
+        // Находим событие, чтобы сохранить его оригинальное время
+        const event = Object.values(eventsByDate || {})
+          .flat()
+          .find((e) => e.id === eventId);
 
-        if (startDayIndex === -1) {
-          console.error("Исходный день не найден");
+        if (!event) {
+          console.error("Событие не найдено");
           return;
         }
 
-        // Вычисляем целевой индекс
-        const targetIndex = startDayIndex + daysToMove;
+        // Если мы перешли на другую неделю, используем целевой индекс напрямую
+        if (weekOffset !== 0) {
+          // Используем targetDayIndex, который был установлен в handleWeekChange
+          if (
+            targetDayIndex !== null &&
+            targetDayIndex >= 0 &&
+            targetDayIndex < 7
+          ) {
+            const targetDate = currentWeek[targetDayIndex];
 
-        // Проверяем, что индекс в пределах недели
-        if (targetIndex >= 0 && targetIndex < 7) {
-          const targetDate = currentWeek[targetIndex];
-
-          // Находим событие, чтобы сохранить его оригинальное время
-          const event = Object.values(eventsByDate || {})
-            .flat()
-            .find((e) => e.id === eventId);
-
-          if (event) {
-            // Если нашли событие, сохраняем его оригинальное время
+            // Сохраняем оригинальное время события
             const originalDate = new Date(event.timestamp);
 
             const normalizedDate = set(targetDate, {
@@ -181,14 +178,79 @@ export const WeeklyCalendarView = () => {
             });
 
             console.log(
-              `Перемещение события на: ${format(normalizedDate, "yyyy-MM-dd HH:mm")}`,
+              `Перемещение события на другую неделю: ${format(normalizedDate, "yyyy-MM-dd HH:mm")}`,
             );
 
             updateEventDate({
               id: eventId,
               timestamp: normalizedDate.toISOString(),
             });
+
+            return;
           }
+        }
+
+        // Стандартная логика для текущей недели
+        // Находим индекс исходного дня
+        const startDayIndex = currentWeek.findIndex(
+          (day) => format(day, "yyyy-MM-dd") === startDay,
+        );
+
+        if (startDayIndex === -1) {
+          console.error(
+            "Исходный день не найден, используем первый день недели",
+          );
+
+          // Используем первый день недели как запасной вариант
+          const targetDate = currentWeek[0];
+
+          // Сохраняем оригинальное время события
+          const originalDate = new Date(event.timestamp);
+
+          const normalizedDate = set(targetDate, {
+            hours: originalDate.getHours(),
+            minutes: originalDate.getMinutes(),
+            seconds: originalDate.getSeconds(),
+            milliseconds: 0,
+          });
+
+          console.log(
+            `Перемещение события на: ${format(normalizedDate, "yyyy-MM-dd HH:mm")}`,
+          );
+
+          updateEventDate({
+            id: eventId,
+            timestamp: normalizedDate.toISOString(),
+          });
+
+          return;
+        }
+
+        // Вычисляем целевой индекс
+        const targetIndex = startDayIndex + daysToMove;
+
+        // Проверяем, что индекс в пределах недели
+        if (targetIndex >= 0 && targetIndex < 7) {
+          const targetDate = currentWeek[targetIndex];
+
+          // Сохраняем оригинальное время события
+          const originalDate = new Date(event.timestamp);
+
+          const normalizedDate = set(targetDate, {
+            hours: originalDate.getHours(),
+            minutes: originalDate.getMinutes(),
+            seconds: originalDate.getSeconds(),
+            milliseconds: 0,
+          });
+
+          console.log(
+            `Перемещение события на: ${format(normalizedDate, "yyyy-MM-dd HH:mm")}`,
+          );
+
+          updateEventDate({
+            id: eventId,
+            timestamp: normalizedDate.toISOString(),
+          });
         } else {
           console.error("Целевой индекс вне диапазона недели:", targetIndex);
         }
@@ -209,7 +271,14 @@ export const WeeklyCalendarView = () => {
         originalEventDateRef.current = null;
       }
     },
-    [currentWeek, updateEventDate, eventsByDate, startDay],
+    [
+      currentWeek,
+      updateEventDate,
+      eventsByDate,
+      startDay,
+      targetDayIndex,
+      weekOffset,
+    ],
   );
 
   const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
