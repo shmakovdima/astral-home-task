@@ -151,17 +151,20 @@ export const DayDropZoneDaily = ({
         isDraggingRef.current = true;
         daysMovedRef.current = 0;
         setLastDragPosition(e.clientX);
-        
+
         const target = e.target as HTMLElement;
         const eventCard = target.closest(".event-card") as HTMLElement;
+
         if (eventCard) {
           const eventId = eventCard.dataset.eventId;
+
           if (eventId) {
             draggedEventId.current = eventId;
             eventCard.style.transform = "scale(0.95)";
             eventCard.style.opacity = "0.8";
           }
         }
+
         return;
       }
 

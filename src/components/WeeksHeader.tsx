@@ -26,7 +26,7 @@ export const WeeksHeader = ({
 
     setTimeout(() => {
       setIsAnimating(false);
-    }, 200);
+    }, 100);
   };
 
   const handleNextWeek = () => {
@@ -37,7 +37,7 @@ export const WeeksHeader = ({
 
     setTimeout(() => {
       setIsAnimating(false);
-    }, 200);
+    }, 100);
   };
 
   const variants = {

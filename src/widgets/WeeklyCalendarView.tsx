@@ -70,6 +70,12 @@ export const WeeklyCalendarView = () => {
       setTargetDayIndex(0);
       setIsDayChanged(true);
     }
+
+    // Reset only isTargetDay after a short delay to allow the week change to complete
+    setTimeout(() => {
+      setIsDayChanged(false);
+      setTargetDayIndex(null);
+    }, 100);
   }, []);
 
   const handleEdgeChange = useCallback((isLeft: boolean, isRight: boolean) => {
@@ -258,8 +264,8 @@ export const WeeklyCalendarView = () => {
               handleEventDrop(draggedEventId, daysToMove);
             }
           }}
-          onWeekChange={handleWeekChange}
           onEdgeChange={handleEdgeChange}
+          onWeekChange={handleWeekChange}
         >
           <div className="grid grid-cols-7 gap-0 overflow-hidden flex-1 h-full">
             {currentWeek.map((date, index) => {

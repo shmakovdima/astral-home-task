@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useDrop } from "react-dnd";
 
 type DayDropZoneProps = {
@@ -18,18 +18,17 @@ export const DayDropZone = ({
 }: DayDropZoneProps) => {
   const startX = useRef<number | null>(null);
   const daysToMove = useRef<number>(0);
-  const [isNearLeftEdge, setIsNearLeftEdge] = useState(false);
-  const [isNearRightEdge, setIsNearRightEdge] = useState(false);
   const weekChangeTimerRef = useRef<NodeJS.Timeout | null>(null);
   const hasDroppedRef = useRef(false);
   const edgeThreshold = 50;
   const weekChangeRef = useRef<"prev" | "next" | null>(null);
 
-  const handleEdgeChange = useCallback((left: boolean, right: boolean) => {
-    setIsNearLeftEdge(left);
-    setIsNearRightEdge(right);
-    onEdgeChange?.(left, right);
-  }, [onEdgeChange]);
+  const handleEdgeChange = useCallback(
+    (left: boolean, right: boolean) => {
+      onEdgeChange?.(left, right);
+    },
+    [onEdgeChange],
+  );
 
   useEffect(() => {
     const handleDragEnd = () => {
@@ -80,7 +79,9 @@ export const DayDropZone = ({
         const newDaysToMove = Math.round(deltaX / dayWidth);
 
         const isLeftEdge = clientOffset.x < edgeThreshold;
-        const isRightEdge = clientOffset.x > window.innerWidth - edgeThreshold - 1;
+
+        const isRightEdge =
+          clientOffset.x > window.innerWidth - edgeThreshold - 1;
 
         handleEdgeChange(isLeftEdge, isRightEdge);
 

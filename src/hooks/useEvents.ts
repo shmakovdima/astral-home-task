@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { getTime, parseISO } from "date-fns";
+import { getHours, getMinutes, getSeconds, parseISO } from "date-fns";
 
 import { api } from "@/lib/axios";
 import { eventsResponseSchema } from "@/lib/validations";
@@ -7,8 +7,14 @@ import { type Event, type EventsByDate } from "@/models";
 
 const sortEvents = (events: Event[]): Event[] =>
   [...events].sort((a, b) => {
-    const timeA = getTime(parseISO(a.timestamp));
-    const timeB = getTime(parseISO(b.timestamp));
+    const dateA = parseISO(a.timestamp);
+    const dateB = parseISO(b.timestamp);
+
+    const timeA =
+      getHours(dateA) * 3600 + getMinutes(dateA) * 60 + getSeconds(dateA);
+
+    const timeB =
+      getHours(dateB) * 3600 + getMinutes(dateB) * 60 + getSeconds(dateB);
 
     if (timeA !== timeB) {
       return timeA - timeB;
