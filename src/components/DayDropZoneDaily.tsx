@@ -21,6 +21,7 @@ export const DayDropZoneDaily = ({
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
   const draggedEventId = useRef<string | null>(null);
+  const isOverDropZone = useRef(false);
 
   useEffect(
     () => () => {
@@ -39,6 +40,7 @@ export const DayDropZoneDaily = ({
       touchStartX.current = null;
       touchStartY.current = null;
       draggedEventId.current = null;
+      isOverDropZone.current = false;
     },
     [],
   );
@@ -50,6 +52,7 @@ export const DayDropZoneDaily = ({
     touchStartX.current = null;
     touchStartY.current = null;
     draggedEventId.current = null;
+    isOverDropZone.current = false;
 
     if (scrollIntervalRef.current) {
       clearInterval(scrollIntervalRef.current);
@@ -73,7 +76,17 @@ export const DayDropZoneDaily = ({
 
   useEffect(() => {
     const handleDragEnd = () => {
-      stopScrolling();
+      if (!draggedEventId.current) return;
+
+      const eventCard = document.querySelector(
+        `.event-card[data-event-id="${draggedEventId.current}"]`,
+      ) as HTMLElement;
+
+      if (eventCard) {
+        eventCard.style.transform = "";
+        eventCard.style.opacity = "";
+      }
+
       cleanupDragState();
       onDrop?.(0);
     };
@@ -96,6 +109,7 @@ export const DayDropZoneDaily = ({
   const [{ isOver }, drop] = useDrop(() => ({
     accept: "event",
     drop: () => {
+      if (!isDraggingRef.current) return;
       const totalDaysMoved = daysMovedRef.current;
       cleanupDragState();
       onDrop?.(totalDaysMoved);
@@ -105,6 +119,10 @@ export const DayDropZoneDaily = ({
       isOver: !!monitor.isOver(),
     }),
   }));
+
+  useEffect(() => {
+    isOverDropZone.current = isOver;
+  }, [isOver]);
 
   const startScrolling = useCallback(
     (direction: "left" | "right") => {
@@ -133,6 +151,17 @@ export const DayDropZoneDaily = ({
         isDraggingRef.current = true;
         daysMovedRef.current = 0;
         setLastDragPosition(e.clientX);
+        
+        const target = e.target as HTMLElement;
+        const eventCard = target.closest(".event-card") as HTMLElement;
+        if (eventCard) {
+          const eventId = eventCard.dataset.eventId;
+          if (eventId) {
+            draggedEventId.current = eventId;
+            eventCard.style.transform = "scale(0.95)";
+            eventCard.style.opacity = "0.8";
+          }
+        }
         return;
       }
 
@@ -262,10 +291,27 @@ export const DayDropZoneDaily = ({
       }
 
       dropTimeoutRef.current = setTimeout(() => {
-        cleanupDragState();
+        if (!isOverDropZone.current) {
+          cleanupDragState();
+          onDrop?.(0);
+        }
       }, 100);
     },
-    [cleanupDragState],
+    [cleanupDragState, onDrop],
+  );
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      if (!isDraggingRef.current) return;
+
+      const totalDaysMoved = daysMovedRef.current;
+      cleanupDragState();
+      onDrop?.(totalDaysMoved);
+    },
+    [cleanupDragState, onDrop],
   );
 
   return (
@@ -276,6 +322,7 @@ export const DayDropZoneDaily = ({
       onClick={(e) => e.stopPropagation()}
       onDragLeave={handleDragLeave}
       onDragOver={handleDragOver}
+      onDrop={handleDrop}
       onTouchEnd={handleTouchEnd}
       onTouchMove={handleTouchMove}
       onTouchStart={handleTouchStart}
