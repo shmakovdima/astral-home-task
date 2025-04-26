@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 import { addDays, format, isSameDay, set } from "date-fns";
 
 import { DateHeader } from "@/components/DateHeader";
-import { DayDropZone } from "@/components/DayDropZone";
+import { DayDropZoneDaily } from "@/components/DayDropZoneDaily";
 import { DaysNavigation } from "@/components/DaysNavigation";
 import { EventCard } from "@/components/EventCard";
 import { useAllEvents } from "@/hooks/useEvents";
@@ -94,7 +94,7 @@ export const DailyView = () => {
       <DaysNavigation activeDay={activeDay} setActiveDay={setActiveDay} />
       <div className="flex flex-col gap-4 p-4">
         <DateHeader date={activeDay} />
-        <DayDropZone
+        <DayDropZoneDaily
           onDayChange={handleDayChange}
           onDrop={(daysToMove) => {
             if (draggedEventId) {
@@ -165,7 +165,7 @@ export const DailyView = () => {
                   </div>
                 )}
           </div>
-        </DayDropZone>
+        </DayDropZoneDaily>
       </div>
     </div>
   );

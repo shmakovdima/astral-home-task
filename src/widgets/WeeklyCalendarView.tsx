@@ -1,22 +1,30 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   addDays,
   addWeeks,
   endOfWeek,
   format,
   isToday,
+  set,
   startOfWeek,
 } from "date-fns";
 
+import { DayDropZone } from "@/components/DayDropZone";
 import { WeekEventCard } from "@/components/WeekEventCard";
 import { WeeksHeader } from "@/components/WeeksHeader";
 import { cnTwMerge } from "@/helpers/cnTwMerge";
 import { useAllEvents } from "@/hooks/useEvents";
+import { useUpdateEventDate } from "@/hooks/useUpdateEventDate";
 
 export const WeeklyCalendarView = () => {
   const { data: eventsByDate } = useAllEvents();
   const [currentWeek, setCurrentWeek] = useState<Date[]>([]);
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [draggedEventId, setDraggedEventId] = useState<string | null>(null);
+  const [isDayChanged, setIsDayChanged] = useState(false);
+  const [startDay, setStartDay] = useState<string | null>(null);
+  const [targetDayIndex, setTargetDayIndex] = useState<number | null>(null);
+  const { mutate: updateEventDate } = useUpdateEventDate();
 
   useEffect(() => {
     const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
@@ -40,6 +48,88 @@ export const WeeklyCalendarView = () => {
     const dateString = format(date, "yyyy-MM-dd");
     return eventsByDate?.[dateString] || [];
   };
+
+  const handleDayChange = (daysToMove: number) => {
+    try {
+      if (!startDay) {
+        const currentDateString = format(currentDate, "yyyy-MM-dd");
+        setStartDay(currentDateString);
+      }
+
+      if (daysToMove === 0) {
+        setTargetDayIndex(null);
+        setIsDayChanged(false);
+        return;
+      }
+
+      // Находим индекс исходного дня
+      const startDayIndex = currentWeek.findIndex(
+        (day) => format(day, "yyyy-MM-dd") === startDay,
+      );
+
+      if (startDayIndex === -1) return;
+
+      // Вычисляем целевой индекс
+      const newIndex = startDayIndex + daysToMove;
+
+      // Проверяем, что индекс в пределах недели
+      if (newIndex >= 0 && newIndex < 7) {
+        setTargetDayIndex(newIndex);
+        setIsDayChanged(true);
+      } else {
+        setTargetDayIndex(null);
+        setIsDayChanged(false);
+      }
+    } catch (error) {
+      console.error("Ошибка при изменении дня:", error);
+    }
+  };
+
+  const handleEventDrop = useCallback(
+    (eventId: string, daysToMove: number) => {
+      try {
+        if (daysToMove === 0) {
+          // Если перетаскивание в тот же день, ничего не делаем
+          return;
+        }
+
+        // Находим индекс исходного дня
+        const startDayIndex = currentWeek.findIndex(
+          (day) => format(day, "yyyy-MM-dd") === startDay,
+        );
+
+        if (startDayIndex === -1) return;
+
+        // Вычисляем целевой индекс
+        const targetIndex = startDayIndex + daysToMove;
+
+        // Проверяем, что индекс в пределах недели
+        if (targetIndex >= 0 && targetIndex < 7) {
+          const targetDate = currentWeek[targetIndex];
+
+          const normalizedDate = set(targetDate, {
+            hours: 12,
+            minutes: 0,
+            seconds: 0,
+            milliseconds: 0,
+          });
+
+          updateEventDate({
+            id: eventId,
+            timestamp: normalizedDate.toISOString(),
+          });
+        }
+      } catch (error) {
+        console.error("Ошибка при обновлении даты события:", error);
+      } finally {
+        setDraggedEventId(null);
+        setIsDayChanged(false);
+        setStartDay(null);
+        setTargetDayIndex(null);
+      }
+    },
+    [currentWeek, startDay, updateEventDate],
+  );
 
   const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
   const weekEnd = endOfWeek(currentDate, { weekStartsOn: 1 });
@@ -73,25 +163,71 @@ export const WeeklyCalendarView = () => {
       </div>
 
       <div className="flex-1 overflow-hidden p-6">
-        <div className="grid grid-cols-7 gap-0 overflow-hidden">
-          {currentWeek.map((date, index) => {
-            const events = getEventsForDay(date);
-            const isLastDay = index === currentWeek.length - 1;
+        <DayDropZone
+          onDayChange={handleDayChange}
+          onDrop={(daysToMove) => {
+            if (draggedEventId) {
+              handleEventDrop(draggedEventId, daysToMove);
+            }
+          }}
+        >
+          <div className="grid grid-cols-7 gap-0 overflow-hidden">
+            {currentWeek.map((date, index) => {
+              const events = getEventsForDay(date);
+              const isLastDay = index === currentWeek.length - 1;
+              const dateString = format(date, "yyyy-MM-dd");
+              const isTargetDay = targetDayIndex === index && isDayChanged;
 
-            return (
-              <div
-                className={`flex flex-col min-h-[500px] gap-4 p-2 ${
-                  isToday(date) ? "bg-blue-50" : ""
-                } ${!isLastDay ? "border-r border-gray-200" : ""}`}
-                key={format(date, "yyyy-MM-dd")}
-              >
-                {events.map((event) => (
-                  <WeekEventCard {...event} key={event.id} />
-                ))}
-              </div>
-            );
-          })}
-        </div>
+              return (
+                <div
+                  className={`flex flex-col min-h-[500px] gap-4 p-2 ${
+                    isToday(date) ? "bg-blue-50" : ""
+                  } ${isTargetDay ? "bg-blue-100/50" : ""} ${
+                    !isLastDay ? "border-r border-gray-200" : ""
+                  } transition-colors duration-200`}
+                  key={format(date, "yyyy-MM-dd")}
+                >
+                  {isTargetDay ? (
+                    <div className="text-center text-gray-500 py-4 border-2 border-dashed border-blue-300 rounded-lg bg-blue-50/70 mb-2">
+                      <div className="flex flex-col items-center gap-2">
+                        <svg
+                          className="w-6 h-6 text-blue-500"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M19 14l-7 7m0 0l-7-7m7 7V3"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                          />
+                        </svg>
+                        <span className="text-xs font-medium text-blue-600">
+                          Drop here to move event
+                        </span>
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {events.map((event) => (
+                    <WeekEventCard
+                      {...event}
+                      key={event.id}
+                      onDragEnd={(daysToMove) =>
+                        handleEventDrop(event.id, daysToMove)
+                      }
+                      onDragStart={() => {
+                        setDraggedEventId(event.id);
+                        setStartDay(dateString);
+                      }}
+                    />
+                  ))}
+                </div>
+              );
+            })}
+          </div>
+        </DayDropZone>
       </div>
     </div>
   );
