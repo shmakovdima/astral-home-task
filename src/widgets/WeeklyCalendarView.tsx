@@ -24,6 +24,11 @@ export const WeeklyCalendarView = () => {
   const [isDayChanged, setIsDayChanged] = useState(false);
   const [startDay, setStartDay] = useState<string | null>(null);
   const [targetDayIndex, setTargetDayIndex] = useState<number | null>(null);
+
+  const [draggedCardHeight, setDraggedCardHeight] = useState<number | null>(
+    null,
+  );
+
   const { mutate: updateEventDate } = useUpdateEventDate();
 
   useEffect(() => {
@@ -62,7 +67,6 @@ export const WeeklyCalendarView = () => {
         return;
       }
 
-      // Находим индекс исходного дня
       const startDayIndex = currentWeek.findIndex(
         (day) => format(day, "yyyy-MM-dd") === startDay,
       );
@@ -89,21 +93,17 @@ export const WeeklyCalendarView = () => {
     (eventId: string, daysToMove: number) => {
       try {
         if (daysToMove === 0) {
-          // Если перетаскивание в тот же день, ничего не делаем
           return;
         }
 
-        // Находим индекс исходного дня
         const startDayIndex = currentWeek.findIndex(
           (day) => format(day, "yyyy-MM-dd") === startDay,
         );
 
         if (startDayIndex === -1) return;
 
-        // Вычисляем целевой индекс
         const targetIndex = startDayIndex + daysToMove;
 
-        // Проверяем, что индекс в пределах недели
         if (targetIndex >= 0 && targetIndex < 7) {
           const targetDate = currentWeek[targetIndex];
 
@@ -120,12 +120,13 @@ export const WeeklyCalendarView = () => {
           });
         }
       } catch (error) {
-        console.error("Ошибка при обновлении даты события:", error);
+        console.error("Error days update:", error);
       } finally {
         setDraggedEventId(null);
         setIsDayChanged(false);
         setStartDay(null);
         setTargetDayIndex(null);
+        setDraggedCardHeight(null);
       }
     },
     [currentWeek, startDay, updateEventDate],
@@ -165,7 +166,7 @@ export const WeeklyCalendarView = () => {
       <div className="flex-1 overflow-hidden p-6">
         <DayDropZone
           onDayChange={handleDayChange}
-          onDrop={(daysToMove) => {
+          onDrop={(daysToMove: number) => {
             if (draggedEventId) {
               handleEventDrop(draggedEventId, daysToMove);
             }
@@ -188,7 +189,16 @@ export const WeeklyCalendarView = () => {
                   key={format(date, "yyyy-MM-dd")}
                 >
                   {isTargetDay ? (
-                    <div className="text-center text-gray-500 py-4 border-2 border-dashed border-blue-300 rounded-lg bg-blue-50/70 mb-2">
+                    <div
+                      className="text-center text-gray-500 border-2 border-dashed border-blue-300 rounded-lg bg-blue-50/70 mb-2 flex items-center justify-center"
+                      style={{
+                        height: draggedCardHeight
+                          ? `${draggedCardHeight}px`
+                          : "auto",
+                        minHeight: "140px",
+                        padding: "0.5rem",
+                      }}
+                    >
                       <div className="flex flex-col items-center gap-2">
                         <svg
                           className="w-6 h-6 text-blue-500"
@@ -217,9 +227,10 @@ export const WeeklyCalendarView = () => {
                       onDragEnd={(daysToMove) =>
                         handleEventDrop(event.id, daysToMove)
                       }
-                      onDragStart={() => {
+                      onDragStart={(height) => {
                         setDraggedEventId(event.id);
                         setStartDay(dateString);
+                        setDraggedCardHeight(height);
                       }}
                     />
                   ))}

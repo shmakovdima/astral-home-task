@@ -1,11 +1,11 @@
-import { memo, useMemo, useState } from "react";
+import { memo, useMemo, useRef, useState } from "react";
 import { useDrag } from "react-dnd";
 import Image from "next/image";
 
 import { type Event } from "@/models";
 
 type WeekEventCardProps = Event & {
-  onDragStart?: () => void;
+  onDragStart?: (height: number) => void;
   onDragEnd?: (daysToMove: number) => void;
 };
 
@@ -24,6 +24,7 @@ export const WeekEventCard = memo(
     onDragEnd,
   }: WeekEventCardProps) => {
     const [isLoading, setIsLoading] = useState(true);
+    const cardRef = useRef<HTMLDivElement>(null);
 
     const eventTime = useMemo(() => {
       const [hours, minutes] = timestamp.split("T")[1].split(":");
@@ -36,7 +37,11 @@ export const WeekEventCard = memo(
       () => ({
         type: "event",
         item: () => {
-          onDragStart?.();
+          if (cardRef.current && onDragStart) {
+            const height = cardRef.current.offsetHeight;
+            onDragStart(height);
+          }
+
           return { id };
         },
         collect: (monitor) => ({
@@ -53,13 +58,19 @@ export const WeekEventCard = memo(
       [id, onDragStart, onDragEnd],
     );
 
+    // Combine refs
+    const dragRef = (el: HTMLDivElement) => {
+      cardRef.current = el;
+      drag(el);
+    };
+
     return (
       <div
         className={`rounded-lg shadow-sm hover:shadow-md transition-all bg-white event-card ${
           isDragging ? "opacity-50 cursor-grabbing" : ""
         }`}
         data-event-id={id}
-        ref={drag as unknown as React.RefObject<HTMLDivElement>}
+        ref={dragRef}
       >
         <div className="flex flex-col gap-4 w-full">
           <div className="relative w-full h-32 rounded-md overflow-hidden">
