@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   addDays,
   addWeeks,
@@ -29,6 +29,8 @@ export const WeeklyCalendarView = () => {
     null,
   );
 
+  const [weekOffset, setWeekOffset] = useState(0);
+  const originalEventDateRef = useRef<string | null>(null);
   const { mutate: updateEventDate } = useUpdateEventDate();
 
   useEffect(() => {
@@ -54,29 +56,67 @@ export const WeeklyCalendarView = () => {
     return eventsByDate?.[dateString] || [];
   };
 
+  const handleWeekChange = useCallback((direction: "prev" | "next") => {
+    if (direction === "prev") {
+      setCurrentDate((prev) => addWeeks(prev, -1));
+      setWeekOffset((prev) => prev - 1);
+      // Устанавливаем целевой день на последний день предыдущей недели при переходе назад
+      setTargetDayIndex(6); // Последний день недели (воскресенье)
+      setIsDayChanged(true);
+    } else {
+      setCurrentDate((prev) => addWeeks(prev, 1));
+      setWeekOffset((prev) => prev + 1);
+      // Устанавливаем целевой день на первый день следующей недели при переходе вперед
+      setTargetDayIndex(0); // Первый день недели (понедельник)
+      setIsDayChanged(true);
+    }
+  }, []);
+
   const handleDayChange = (daysToMove: number) => {
     try {
       if (!startDay) {
         const currentDateString = format(currentDate, "yyyy-MM-dd");
         setStartDay(currentDateString);
+
+        // Сохраняем оригинальную дату события для последующего расчета
+        if (draggedEventId && !originalEventDateRef.current) {
+          const event = Object.values(eventsByDate || {})
+            .flat()
+            .find((e) => e.id === draggedEventId);
+
+          if (event) {
+            originalEventDateRef.current = event.timestamp;
+          }
+        }
       }
 
-      if (daysToMove === 0) {
+      // Учитываем смещение недели при расчете целевого дня
+      const totalDaysToMove = daysToMove + weekOffset * 7;
+
+      if (totalDaysToMove === 0 && weekOffset === 0) {
         setTargetDayIndex(null);
         setIsDayChanged(false);
         return;
       }
 
+      // Всегда показываем дроп-зону, если мы на другой неделе
+      if (weekOffset !== 0) {
+        // Вычисляем индекс дня в текущей неделе
+        const dayIndex = ((daysToMove % 7) + 7) % 7;
+        setTargetDayIndex(dayIndex);
+        setIsDayChanged(true);
+        return;
+      }
+
+      // Стандартная логика для текущей недели
       const startDayIndex = currentWeek.findIndex(
         (day) => format(day, "yyyy-MM-dd") === startDay,
       );
 
       if (startDayIndex === -1) return;
 
-      // Вычисляем целевой индекс
       const newIndex = startDayIndex + daysToMove;
 
-      // Проверяем, что индекс в пределах недели
       if (newIndex >= 0 && newIndex < 7) {
         setTargetDayIndex(newIndex);
         setIsDayChanged(true);
@@ -89,47 +129,87 @@ export const WeeklyCalendarView = () => {
     }
   };
 
+  const isProcessingDropRef = useRef(false);
+
   const handleEventDrop = useCallback(
     (eventId: string, daysToMove: number) => {
       try {
-        if (daysToMove === 0) {
+        // Проверяем, не обрабатывается ли уже событие
+        if (isProcessingDropRef.current) {
+          console.log("Событие уже обрабатывается, пропускаем");
           return;
         }
 
+        // Устанавливаем флаг, что событие обрабатывается
+        isProcessingDropRef.current = true;
+
+        console.log(
+          `Обработка перетаскивания события ${eventId} на ${daysToMove} дней`,
+        );
+
+        // Находим индекс исходного дня
         const startDayIndex = currentWeek.findIndex(
           (day) => format(day, "yyyy-MM-dd") === startDay,
         );
 
-        if (startDayIndex === -1) return;
+        if (startDayIndex === -1) {
+          console.error("Исходный день не найден");
+          return;
+        }
 
+        // Вычисляем целевой индекс
         const targetIndex = startDayIndex + daysToMove;
 
+        // Проверяем, что индекс в пределах недели
         if (targetIndex >= 0 && targetIndex < 7) {
           const targetDate = currentWeek[targetIndex];
 
-          const normalizedDate = set(targetDate, {
-            hours: 12,
-            minutes: 0,
-            seconds: 0,
-            milliseconds: 0,
-          });
+          // Находим событие, чтобы сохранить его оригинальное время
+          const event = Object.values(eventsByDate || {})
+            .flat()
+            .find((e) => e.id === eventId);
 
-          updateEventDate({
-            id: eventId,
-            timestamp: normalizedDate.toISOString(),
-          });
+          if (event) {
+            // Если нашли событие, сохраняем его оригинальное время
+            const originalDate = new Date(event.timestamp);
+
+            const normalizedDate = set(targetDate, {
+              hours: originalDate.getHours(),
+              minutes: originalDate.getMinutes(),
+              seconds: originalDate.getSeconds(),
+              milliseconds: 0,
+            });
+
+            console.log(
+              `Перемещение события на: ${format(normalizedDate, "yyyy-MM-dd HH:mm")}`,
+            );
+
+            updateEventDate({
+              id: eventId,
+              timestamp: normalizedDate.toISOString(),
+            });
+          }
+        } else {
+          console.error("Целевой индекс вне диапазона недели:", targetIndex);
         }
       } catch (error) {
-        console.error("Error days update:", error);
+        console.error("Ошибка при обновлении даты:", error);
       } finally {
+        // Сбрасываем флаг обработки с небольшой задержкой
+        setTimeout(() => {
+          isProcessingDropRef.current = false;
+        }, 200);
+
         setDraggedEventId(null);
         setIsDayChanged(false);
         setStartDay(null);
         setTargetDayIndex(null);
         setDraggedCardHeight(null);
+        setWeekOffset(0);
+        originalEventDateRef.current = null;
       }
     },
-    [currentWeek, startDay, updateEventDate],
+    [currentWeek, updateEventDate, eventsByDate, startDay],
   );
 
   const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
@@ -171,6 +251,7 @@ export const WeeklyCalendarView = () => {
               handleEventDrop(draggedEventId, daysToMove);
             }
           }}
+          onWeekChange={handleWeekChange}
         >
           <div className="grid grid-cols-7 gap-0 overflow-hidden">
             {currentWeek.map((date, index) => {

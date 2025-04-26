@@ -25,6 +25,7 @@ export const WeekEventCard = memo(
   }: WeekEventCardProps) => {
     const [isLoading, setIsLoading] = useState(true);
     const cardRef = useRef<HTMLDivElement>(null);
+    const hasEndedRef = useRef(false); // Флаг для отслеживания завершения перетаскивания
 
     const eventTime = useMemo(() => {
       const [hours, minutes] = timestamp.split("T")[1].split(":");
@@ -37,6 +38,8 @@ export const WeekEventCard = memo(
       () => ({
         type: "event",
         item: () => {
+          hasEndedRef.current = false; // Сбрасываем флаг при начале перетаскивания
+
           if (cardRef.current && onDragStart) {
             const height = cardRef.current.offsetHeight;
             onDragStart(height);
@@ -48,10 +51,21 @@ export const WeekEventCard = memo(
           isDragging: !!monitor.isDragging(),
         }),
         end: (_, monitor) => {
+          // Проверяем, не было ли уже обработано завершение перетаскивания
+          if (hasEndedRef.current) {
+            return;
+          }
+
           const dropResult = monitor.getDropResult<DropResult>();
 
           if (dropResult && onDragEnd) {
+            hasEndedRef.current = true; // Устанавливаем флаг, что перетаскивание завершено
             onDragEnd(dropResult.daysToMove);
+
+            // Сбрасываем флаг через небольшую задержку
+            setTimeout(() => {
+              hasEndedRef.current = false;
+            }, 100);
           }
         },
       }),
