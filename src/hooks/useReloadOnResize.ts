@@ -1,11 +1,11 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef } from "react";
 
 export const useReloadOnResize = () => {
   const prevWidth = useRef<number | null>(null);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    if (process.env.NODE_ENV !== 'development') return;
+    if (typeof window === "undefined") return;
+    if (process.env.NODE_ENV !== "development") return;
 
     prevWidth.current = window.innerWidth;
 
@@ -21,10 +21,10 @@ export const useReloadOnResize = () => {
       prevWidth.current = window.innerWidth;
     };
 
-    window.addEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
 
     return () => {
-      window.removeEventListener('resize', handleResize);
+      window.removeEventListener("resize", handleResize);
     };
   }, []);
 };
