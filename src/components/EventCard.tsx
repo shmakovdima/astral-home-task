@@ -52,7 +52,7 @@ export const EventCard = memo(
 
     return (
       <div
-        className={`rounded-lg shadow-sm hover:shadow-md transition-all bg-white event-card ${
+        className={`rounded-lg min-h-[252px] shadow-sm hover:shadow-md transition-all bg-white event-card ${
           isDragging ? "opacity-50 cursor-grabbing" : ""
         }`}
         data-event-id={id}
