@@ -21,7 +21,7 @@ export const useSwipeNavigation = ({
   }, []);
 
   const handleTouchStart = useCallback((event: TouchEvent) => {
-    console.log("touch start");
+
     touchStartX.current = event.touches[0].clientX;
     isSwiping.current = true;
   }, []);
@@ -32,8 +32,6 @@ export const useSwipeNavigation = ({
 
       const touchEndX = event.touches[0].clientX;
       const deltaX = touchEndX - touchStartX.current;
-
-      console.log("touch move", deltaX);
 
       if (Math.abs(deltaX) > minSwipeDistance) {
         event.preventDefault();
@@ -46,11 +44,8 @@ export const useSwipeNavigation = ({
     (event: TouchEvent) => {
       if (!isSwiping.current || !touchStartX.current) return;
 
-      console.log("touch end");
       const touchEndX = event.changedTouches[0].clientX;
       const deltaX = touchEndX - touchStartX.current;
-
-      console.log("deltaX", deltaX);
 
       if (Math.abs(deltaX) >= minSwipeDistance) {
         onSwipe(deltaX > 0 ? "right" : "left");
