@@ -12,10 +12,8 @@ const axiosInstance = axios.create({
 axiosInstance.interceptors.request.use(
   (config) => {
     if (process.env.NODE_ENV === "development") {
-      // In development, we want to use the mock service worker
       config.baseURL = "";
 
-      // Ensure the URL starts with /api
       if (config.url && !config.url.startsWith("/api")) {
         config.url = `/api${config.url}`;
       }

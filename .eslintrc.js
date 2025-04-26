@@ -77,6 +77,11 @@ module.exports = {
   ],
   root: true,
   rules: {
+    "no-warning-comments": ["error", { "terms": ["todo", "fixme", "xxx"], "location": "anywhere" }],
+    "no-inline-comments": "error",
+    "line-comment-position": ["error", { "position": "above" }],
+    "multiline-comment-style": ["error", "starred-block"],
+    "spaced-comment": ["error", "always"],
     "@typescript-eslint/array-type": "error",
     "@typescript-eslint/await-thenable": "error",
     "@typescript-eslint/ban-ts-comment": "error",
@@ -278,4 +283,4 @@ module.exports = {
       rootDir: ".",
     },
   },
-}; 
+};

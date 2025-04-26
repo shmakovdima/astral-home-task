@@ -20,10 +20,9 @@ export const DayDropZone = ({
   const [isNearRightEdge, setIsNearRightEdge] = useState(false);
   const weekChangeTimerRef = useRef<NodeJS.Timeout | null>(null);
   const hasDroppedRef = useRef(false);
-  const edgeThreshold = 100; // пикселей от края экрана
+  const edgeThreshold = 100;
   const weekChangeRef = useRef<"prev" | "next" | null>(null);
 
-  // Очистка таймера при размонтировании
   useEffect(
     () => () => {
       if (weekChangeTimerRef.current) {
@@ -37,7 +36,6 @@ export const DayDropZone = ({
     () => ({
       accept: "event",
       hover: (_, monitor) => {
-        // Сбрасываем флаг при начале нового перетаскивания
         if (!monitor.isOver()) {
           hasDroppedRef.current = false;
         }
@@ -52,10 +50,9 @@ export const DayDropZone = ({
         }
 
         const deltaX = clientOffset.x - startX.current;
-        const dayWidth = window.innerWidth / 7; // Примерная ширина дня
+        const dayWidth = window.innerWidth / 7;
         const newDaysToMove = Math.round(deltaX / dayWidth);
 
-        // Проверка близости к краям экрана
         const isLeftEdge = clientOffset.x < edgeThreshold;
         const isRightEdge = clientOffset.x > window.innerWidth - edgeThreshold;
 
@@ -67,23 +64,20 @@ export const DayDropZone = ({
             weekChangeTimerRef.current = setTimeout(() => {
               onWeekChange("prev");
               weekChangeRef.current = "prev";
-              // Сбрасываем начальную позицию после перехода на другую неделю
               startX.current = clientOffset.x;
               weekChangeTimerRef.current = null;
-            }, 500); // Задержка перед переходом на другую неделю
+            }, 500);
           }
         } else if (isRightEdge && onWeekChange) {
           if (!weekChangeTimerRef.current) {
             weekChangeTimerRef.current = setTimeout(() => {
               onWeekChange("next");
               weekChangeRef.current = "next";
-              // Сбрасываем начальную позицию после перехода на другую неделю
               startX.current = clientOffset.x;
               weekChangeTimerRef.current = null;
-            }, 500); // Задержка перед переходом на другую неделю
+            }, 500);
           }
         } else if (weekChangeTimerRef.current) {
-          // Если курсор ушел от края, отменяем таймер
           clearTimeout(weekChangeTimerRef.current);
           weekChangeTimerRef.current = null;
         }
@@ -94,16 +88,13 @@ export const DayDropZone = ({
         }
       },
       drop: () => {
-        // Очищаем таймер при завершении перетаскивания
         if (weekChangeTimerRef.current) {
           clearTimeout(weekChangeTimerRef.current);
           weekChangeTimerRef.current = null;
         }
 
-        // Учитываем смещение недели при расчете итогового перемещения
         let finalDaysToMove = daysToMove.current;
 
-        // Добавляем смещение в зависимости от перехода на другую неделю
         if (weekChangeRef.current === "prev") {
           finalDaysToMove = -7 + (finalDaysToMove % 7);
         } else if (weekChangeRef.current === "next") {
@@ -112,12 +103,10 @@ export const DayDropZone = ({
 
         const result = { daysToMove: finalDaysToMove };
 
-        // Вызываем onDrop только один раз
         if (!hasDroppedRef.current) {
           hasDroppedRef.current = true;
           onDrop(finalDaysToMove);
 
-          // Сбрасываем флаг через небольшую задержку
           setTimeout(() => {
             hasDroppedRef.current = false;
           }, 200);

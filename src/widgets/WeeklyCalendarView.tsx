@@ -60,14 +60,12 @@ export const WeeklyCalendarView = () => {
     if (direction === "prev") {
       setCurrentDate((prev) => addWeeks(prev, -1));
       setWeekOffset((prev) => prev - 1);
-      // Устанавливаем целевой день на последний день предыдущей недели при переходе назад
-      setTargetDayIndex(6); // Последний день недели (воскресенье)
+      setTargetDayIndex(6);
       setIsDayChanged(true);
     } else {
       setCurrentDate((prev) => addWeeks(prev, 1));
       setWeekOffset((prev) => prev + 1);
-      // Устанавливаем целевой день на первый день следующей недели при переходе вперед
-      setTargetDayIndex(0); // Первый день недели (понедельник)
+      setTargetDayIndex(0);
       setIsDayChanged(true);
     }
   }, []);
@@ -78,7 +76,6 @@ export const WeeklyCalendarView = () => {
         const currentDateString = format(currentDate, "yyyy-MM-dd");
         setStartDay(currentDateString);
 
-        // Сохраняем оригинальную дату события для последующего расчета
         if (draggedEventId && !originalEventDateRef.current) {
           const event = Object.values(eventsByDate || {})
             .flat()
@@ -90,7 +87,6 @@ export const WeeklyCalendarView = () => {
         }
       }
 
-      // Учитываем смещение недели при расчете целевого дня
       const totalDaysToMove = daysToMove + weekOffset * 7;
 
       if (totalDaysToMove === 0 && weekOffset === 0) {
@@ -99,16 +95,13 @@ export const WeeklyCalendarView = () => {
         return;
       }
 
-      // Всегда показываем дроп-зону, если мы на другой неделе
       if (weekOffset !== 0) {
-        // Вычисляем индекс дня в текущей неделе
         const dayIndex = ((daysToMove % 7) + 7) % 7;
         setTargetDayIndex(dayIndex);
         setIsDayChanged(true);
         return;
       }
 
-      // Стандартная логика для текущей недели
       const startDayIndex = currentWeek.findIndex(
         (day) => format(day, "yyyy-MM-dd") === startDay,
       );
@@ -134,20 +127,17 @@ export const WeeklyCalendarView = () => {
   const handleEventDrop = useCallback(
     (eventId: string, daysToMove: number) => {
       try {
-        // Проверяем, не обрабатывается ли уже событие
         if (isProcessingDropRef.current) {
           console.log("Событие уже обрабатывается, пропускаем");
           return;
         }
 
-        // Устанавливаем флаг, что событие обрабатывается
         isProcessingDropRef.current = true;
 
         console.log(
           `Обработка перетаскивания события ${eventId} на ${daysToMove} дней`,
         );
 
-        // Находим событие, чтобы сохранить его оригинальное время
         const event = Object.values(eventsByDate || {})
           .flat()
           .find((e) => e.id === eventId);
@@ -157,9 +147,7 @@ export const WeeklyCalendarView = () => {
           return;
         }
 
-        // Если мы перешли на другую неделю, используем целевой индекс напрямую
         if (weekOffset !== 0) {
-          // Используем targetDayIndex, который был установлен в handleWeekChange
           if (
             targetDayIndex !== null &&
             targetDayIndex >= 0 &&
@@ -167,7 +155,6 @@ export const WeeklyCalendarView = () => {
           ) {
             const targetDate = currentWeek[targetDayIndex];
 
-            // Сохраняем оригинальное время события
             const originalDate = new Date(event.timestamp);
 
             const normalizedDate = set(targetDate, {
@@ -190,50 +177,20 @@ export const WeeklyCalendarView = () => {
           }
         }
 
-        // Стандартная логика для текущей недели
-        // Находим индекс исходного дня
         const startDayIndex = currentWeek.findIndex(
           (day) => format(day, "yyyy-MM-dd") === startDay,
         );
 
         if (startDayIndex === -1) {
-          console.error(
-            "Исходный день не найден, используем первый день недели",
-          );
-
-          // Используем первый день недели как запасной вариант
-          const targetDate = currentWeek[0];
-
-          // Сохраняем оригинальное время события
-          const originalDate = new Date(event.timestamp);
-
-          const normalizedDate = set(targetDate, {
-            hours: originalDate.getHours(),
-            minutes: originalDate.getMinutes(),
-            seconds: originalDate.getSeconds(),
-            milliseconds: 0,
-          });
-
-          console.log(
-            `Перемещение события на: ${format(normalizedDate, "yyyy-MM-dd HH:mm")}`,
-          );
-
-          updateEventDate({
-            id: eventId,
-            timestamp: normalizedDate.toISOString(),
-          });
-
+          console.error("Исходный день не найден");
           return;
         }
 
-        // Вычисляем целевой индекс
         const targetIndex = startDayIndex + daysToMove;
 
-        // Проверяем, что индекс в пределах недели
         if (targetIndex >= 0 && targetIndex < 7) {
           const targetDate = currentWeek[targetIndex];
 
-          // Сохраняем оригинальное время события
           const originalDate = new Date(event.timestamp);
 
           const normalizedDate = set(targetDate, {
@@ -257,7 +214,6 @@ export const WeeklyCalendarView = () => {
       } catch (error) {
         console.error("Ошибка при обновлении даты:", error);
       } finally {
-        // Сбрасываем флаг обработки с небольшой задержкой
         setTimeout(() => {
           isProcessingDropRef.current = false;
         }, 200);

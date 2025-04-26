@@ -20,8 +20,6 @@ export const EventCard = memo(
     imageUrl,
     timestamp,
     description,
-    // location,
-    // duration,
     onDragStart,
     onDragEnd,
   }: EventCardProps) => {
