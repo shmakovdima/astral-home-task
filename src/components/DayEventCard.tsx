@@ -2,7 +2,6 @@ import { memo, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 
-import { cnTwMerge } from "@/helpers/cnTwMerge";
 import { type Event } from "@/models";
 import { useDraggable } from "@dnd-kit/core";
 
@@ -19,7 +18,6 @@ export const DayEventCard = memo(
   }: Event & {
     isDragOverlay?: boolean;
   }) => {
-    const [isLoading, setIsLoading] = useState(true);
     const [isExpanded, setIsExpanded] = useState(false);
     const pointerStartTimeRef = useRef(0);
     const pointerStartPositionRef = useRef({ x: 0, y: 0 });
@@ -129,13 +127,9 @@ export const DayEventCard = memo(
             >
               <Image
                 alt={title}
-                className={cnTwMerge(
-                  "transition-opacity duration-300 select-none",
-                  isLoading ? "opacity-0" : "opacity-100",
-                )}
+                className="transition-opacity duration-300 select-none"
                 draggable={false}
                 fill
-                onLoad={() => setIsLoading(false)}
                 priority
                 src={imageUrl}
                 style={{ objectFit: "cover", userSelect: "none" }}
