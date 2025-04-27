@@ -50,6 +50,7 @@ export const DayEventCard = memo(
     const cardRef = useRef<HTMLDivElement>(null);
     const hasEndedRef = useRef(false);
     const scrollbarWidthRef = useRef(0);
+    const isDraggingRef = useRef(false);
 
     const getLayoutId = (prefix: string) => {
       if (disableAnimation) return undefined;
@@ -131,6 +132,7 @@ export const DayEventCard = memo(
         type: "event",
         item: () => {
           hasEndedRef.current = false;
+          isDraggingRef.current = true;
 
           if (cardRef.current && onDragStart) {
             const height = cardRef.current.offsetHeight;
@@ -143,6 +145,8 @@ export const DayEventCard = memo(
           isDragging: !!monitor.isDragging(),
         }),
         end: (_, monitor) => {
+          isDraggingRef.current = false;
+
           if (hasEndedRef.current) {
             return;
           }
@@ -167,20 +171,32 @@ export const DayEventCard = memo(
       drag(el);
     };
 
+    const handleTouchStart = (e: React.TouchEvent) => {
+      if (isDragging || isDraggingRef.current) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    };
+
+    const handleTouchMove = (e: React.TouchEvent) => {
+      if (isDragging || isDraggingRef.current) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    };
+
     return (
       <div className="relative">
         <div
-          className={`rounded-lg shadow-sm hover:shadow-md transition-all bg-white event-card ${
+          className={`rounded-lg shadow-sm hover:shadow-md transition-all bg-white event-card select-none ${
             isDragging ? "opacity-50 cursor-grabbing" : ""
           }`}
           data-event-id={id}
           onClick={() => !isDragging && setIsExpanded(true)}
           onContextMenu={(e) => e.preventDefault()}
-          onTouchStart={(e) => {
-            if (isDragging) {
-              e.preventDefault();
-            }
-          }}
+          onTouchEnd={(e) => e.preventDefault()}
+          onTouchMove={handleTouchMove}
+          onTouchStart={handleTouchStart}
           ref={dragRef}
         >
           <motion.div
@@ -195,12 +211,13 @@ export const DayEventCard = memo(
                 alt={title}
                 className={`transition-opacity duration-300 ${
                   isLoading ? "opacity-0" : "opacity-100"
-                }`}
+                } select-none`}
+                draggable={false}
                 fill
                 onLoad={() => setIsLoading(false)}
                 priority
                 src={imageUrl}
-                style={{ objectFit: "cover" }}
+                style={{ objectFit: "cover", userSelect: "none" }}
               />
               <motion.div
                 className="absolute flex justify-center align-middle top-3 right-3 px-2 py-1 rounded-full bg-gradient-to-r from-indigo-600 to-violet-600"
@@ -220,7 +237,7 @@ export const DayEventCard = memo(
                 layoutId={getLayoutId("title-container")}
               >
                 <motion.h3
-                  className="text-[18px] leading-[22px] font-semibold text-gray-900 w-full whitespace-nowrap text-ellipsis"
+                  className="text-[18px] leading-[22px] font-semibold text-gray-900 w-full whitespace-nowrap text-ellipsis select-none"
                   layoutId={getLayoutId("title")}
                 >
                   {title}
@@ -231,7 +248,7 @@ export const DayEventCard = memo(
                 layoutId={getLayoutId("description-container")}
               >
                 <motion.p
-                  className="mt-2 text-[14px] leading-5 text-gray-600 line-clamp-2"
+                  className="mt-2 text-[14px] leading-5 text-gray-600 line-clamp-2 select-none"
                   layoutId={getLayoutId("description")}
                 >
                   {description}
@@ -260,7 +277,7 @@ export const DayEventCard = memo(
                 transition={{ duration: 0.3 }}
               >
                 <motion.div
-                  className="flex flex-col w-full h-full bg-white"
+                  className="flex flex-col w-full h-full bg-white select-none"
                   layoutId={getLayoutId("card")}
                 >
                   <motion.div
@@ -269,10 +286,11 @@ export const DayEventCard = memo(
                   >
                     <Image
                       alt={title}
+                      draggable={false}
                       fill
                       priority
                       src={imageUrl}
-                      style={{ objectFit: "cover" }}
+                      style={{ objectFit: "cover", userSelect: "none" }}
                     />
                     <motion.div
                       className="absolute flex justify-center align-middle top-5 right-4 px-2 py-1 rounded-full bg-gradient-to-r from-indigo-600 to-violet-600"
@@ -317,7 +335,7 @@ export const DayEventCard = memo(
                       layoutId={getLayoutId("title-container")}
                     >
                       <motion.h3
-                        className="text-[18px] leading-[22px] font-semibold text-gray-900"
+                        className="text-[18px] leading-[22px] font-semibold text-gray-900 select-none"
                         layoutId={getLayoutId("title")}
                       >
                         {title}
@@ -328,7 +346,7 @@ export const DayEventCard = memo(
                       layoutId={getLayoutId("description-container")}
                     >
                       <motion.p
-                        className="mt-2 text-[14px] leading-5 text-gray-600"
+                        className="mt-2 text-[14px] leading-5 text-gray-600 select-none"
                         layoutId={getLayoutId("description")}
                       >
                         {description}
@@ -355,7 +373,9 @@ export const DayEventCard = memo(
                             strokeWidth={2}
                           />
                         </svg>
-                        <span className="text-sm">{formattedDuration}</span>
+                        <span className="text-sm select-none">
+                          {formattedDuration}
+                        </span>
                       </div>
                       <div className="flex items-center gap-2 text-gray-600">
                         <svg
@@ -377,7 +397,7 @@ export const DayEventCard = memo(
                             strokeWidth={2}
                           />
                         </svg>
-                        <span className="text-sm">{location}</span>
+                        <span className="text-sm select-none">{location}</span>
                       </div>
                     </motion.div>
                   </motion.div>
