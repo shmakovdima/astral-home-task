@@ -21,7 +21,7 @@ import {
   useDndMonitor,
 } from "@dnd-kit/core";
 
-const EDGE_THRESHOLD = 0.2;
+const EDGE_THRESHOLD = 0.3;
 const HOLD_DURATION = 300;
 
 const DragMonitor = ({ onDayChange }: { onDayChange: (direction: "prev" | "next") => void }) => {
@@ -42,6 +42,8 @@ const DragMonitor = ({ onDayChange }: { onDayChange: (direction: "prev" | "next"
       const screenWidth = window.innerWidth;
       const threshold = screenWidth * EDGE_THRESHOLD;
       let newDirection: "prev" | "next" | null = null;
+
+      console.log("delta", delta);
 
       if (delta.x > threshold) {
         newDirection = "next";

@@ -1,28 +1,9 @@
 import { memo, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
-
-import { type Event } from "@/models";
 import { useDraggable } from "@dnd-kit/core";
 
-const EDGE_THRESHOLD = 0.2;
-const HOLD_DURATION = 300;
-const CLICK_DURATION = 200;
-
-const getScrollbarWidth = () => {
-  const outer = document.createElement("div");
-  outer.style.visibility = "hidden";
-  outer.style.overflow = "scroll";
-  document.body.appendChild(outer);
-
-  const inner = document.createElement("div");
-  outer.appendChild(inner);
-
-  const scrollbarWidth = outer.offsetWidth - inner.offsetWidth;
-  outer.parentNode?.removeChild(outer);
-
-  return scrollbarWidth;
-};
+import { type Event } from "@/models";
 
 const getLayoutId = (prefix: string, id: string) => `day-${prefix}-${id}`;
 
@@ -44,111 +25,14 @@ export const DayEventCard = memo(
     const [isLoading, setIsLoading] = useState(true);
     const [isExpanded, setIsExpanded] = useState(false);
     const cardRef = useRef<HTMLDivElement>(null);
-    const edgeTimeoutRef = useRef<number | null>(null);
-    const lastDirectionRef = useRef<"prev" | "next" | null>(null);
     const pointerStartTimeRef = useRef(0);
     const pointerStartPositionRef = useRef({ x: 0, y: 0 });
-    const hasChangedDayRef = useRef(false);
 
     const { attributes, listeners, setNodeRef, transform, isDragging } =
       useDraggable({
         id: `draggable-${id}`,
         data: { id },
       });
-
-    useEffect(() => {
-      if (!isDragging) {
-        hasChangedDayRef.current = false;
-        if (edgeTimeoutRef.current) {
-          clearTimeout(edgeTimeoutRef.current);
-          edgeTimeoutRef.current = null;
-        }
-        lastDirectionRef.current = null;
-      }
-    }, [isDragging]);
-
-    useEffect(() => {
-      const handleDragMove = () => {
-        if (!transform?.x || !onDayChange) return;
-
-        console.log("transform", transform);
-
-        const screenWidth = window.innerWidth;
-        const threshold = screenWidth * EDGE_THRESHOLD;
-        let newDirection: "prev" | "next" | null = null;
-
-        if (transform.x > threshold) {
-          newDirection = "next";
-        } else if (transform.x < -threshold) {
-          newDirection = "prev";
-        }
-
-        // Очищаем таймер если изменилось направление или мы не у края
-        if (newDirection !== lastDirectionRef.current || !newDirection) {
-          if (edgeTimeoutRef.current) {
-            clearTimeout(edgeTimeoutRef.current);
-            edgeTimeoutRef.current = null;
-          }
-          hasChangedDayRef.current = false;
-        }
-
-        if (newDirection && !edgeTimeoutRef.current && !hasChangedDayRef.current) {
-          const holdStartTime = Date.now();
-          const pointerHoldDuration = holdStartTime - pointerStartTimeRef.current;
-
-          if (pointerHoldDuration > HOLD_DURATION) {
-            edgeTimeoutRef.current = window.setTimeout(() => {
-              onDayChange(newDirection!);
-              hasChangedDayRef.current = true;
-              
-              // Сбрасываем позицию карточки
-              if (cardRef.current) {
-                cardRef.current.style.transform = 'translate3d(0px, 0px, 0)';
-              }
-
-              setTimeout(() => {
-                hasChangedDayRef.current = false;
-              }, 300);
-            }, 100);
-          }
-        }
-
-        lastDirectionRef.current = newDirection;
-      };
-
-      handleDragMove();
-
-      return () => {
-        if (edgeTimeoutRef.current) {
-          clearTimeout(edgeTimeoutRef.current);
-          edgeTimeoutRef.current = null;
-        }
-      };
-    }, [transform?.x, onDayChange]);
-
-    const handlePointerDown = (e: React.PointerEvent) => {
-      pointerStartTimeRef.current = Date.now();
-      pointerStartPositionRef.current = { x: e.clientX, y: e.clientY };
-      hasChangedDayRef.current = false;
-      
-      // Сбрасываем transform при новом взаимодействии
-      if (cardRef.current) {
-        cardRef.current.style.transform = '';
-      }
-    };
-
-    const handlePointerUp = (e: React.PointerEvent) => {
-      const pointerUpTime = Date.now();
-      const pointerDuration = pointerUpTime - pointerStartTimeRef.current;
-      
-      const dx = Math.abs(e.clientX - pointerStartPositionRef.current.x);
-      const dy = Math.abs(e.clientY - pointerStartPositionRef.current.y);
-      const distance = Math.sqrt(dx * dx + dy * dy);
-
-      if (pointerDuration < CLICK_DURATION && distance < 5) {
-        setIsExpanded(true);
-      }
-    };
 
     useEffect(() => {
       if (isExpanded) {
@@ -188,6 +72,24 @@ export const DayEventCard = memo(
         html.style.width = "";
       };
     }, [isExpanded]);
+
+    const handlePointerDown = (e: React.PointerEvent) => {
+      pointerStartTimeRef.current = Date.now();
+      pointerStartPositionRef.current = { x: e.clientX, y: e.clientY };
+    };
+
+    const handlePointerUp = (e: React.PointerEvent) => {
+      const pointerUpTime = Date.now();
+      const pointerDuration = pointerUpTime - pointerStartTimeRef.current;
+
+      const dx = Math.abs(e.clientX - pointerStartPositionRef.current.x);
+      const dy = Math.abs(e.clientY - pointerStartPositionRef.current.y);
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      if (pointerDuration < 200 && distance < 5) {
+        setIsExpanded(true);
+      }
+    };
 
     const eventTime = useMemo(() => {
       const [hours, minutes] = timestamp.split("T")[1].split(":");
