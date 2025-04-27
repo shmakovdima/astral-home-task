@@ -18,6 +18,20 @@ const nextConfig = {
       },
     ],
   },
+  async headers() {
+    return [
+      {
+        source: '/:all*(svg|jpg|png|jpeg|gif|ico|webp)',
+        locale: false,
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+    ]
+  },
   webpack: (config, context) => {
     if (context?.isServer) {
       if (Array.isArray(config.resolve.alias)) {
