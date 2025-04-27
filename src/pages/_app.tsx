@@ -1,4 +1,4 @@
-import { useLayoutEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import type { AppProps } from "next/app";
 import { Roboto } from "next/font/google";
 
@@ -18,7 +18,7 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
   const [isReady, setIsReady] = useState(false);
   useReloadOnResize();
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (typeof window !== "undefined") {
       import("../mocks/browser").then(({ worker }) => {
         worker

@@ -1,20 +1,8 @@
 import { memo, useEffect, useMemo, useRef, useState } from "react";
-import { useDrag } from "react-dnd";
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 
 import { type Event } from "@/models";
-
-type DayEventCardProps = Event & {
-  onDragStart?: (height: number) => void;
-  onDragEnd?: (daysToMove: number) => void;
-  disableAnimation?: boolean;
-  onExpandChange?: (isExpanded: boolean) => void;
-};
-
-type DropResult = {
-  daysToMove: number;
-};
 
 const getScrollbarWidth = () => {
   const outer = document.createElement("div");
@@ -40,11 +28,7 @@ export const DayEventCard = memo(
     description,
     location,
     duration,
-    onDragStart,
-    onDragEnd,
-    disableAnimation,
-    onExpandChange,
-  }: DayEventCardProps) => {
+  }: Event) => {
     const [isLoading, setIsLoading] = useState(true);
     const [isExpanded, setIsExpanded] = useState(false);
     const cardRef = useRef<HTMLDivElement>(null);
@@ -53,8 +37,6 @@ export const DayEventCard = memo(
     const isDraggingRef = useRef(false);
 
     const getLayoutId = (prefix: string) => {
-      if (disableAnimation) return undefined;
-      if (isDragging) return undefined;
       return `day-${prefix}-${id}`;
     };
 
@@ -101,10 +83,6 @@ export const DayEventCard = memo(
       };
     }, [isExpanded]);
 
-    useEffect(() => {
-      onExpandChange?.(isExpanded);
-    }, [isExpanded, onExpandChange]);
-
     const eventTime = useMemo(() => {
       const [hours, minutes] = timestamp.split("T")[1].split(":");
       const hoursNum = parseInt(hours, 10);
@@ -127,77 +105,13 @@ export const DayEventCard = memo(
       return `${hours} ${hours === 1 ? "hour" : "hours"} ${minutes} min`;
     }, [duration]);
 
-    const [{ isDragging }, drag] = useDrag(
-      () => ({
-        type: "event",
-        item: () => {
-          hasEndedRef.current = false;
-          isDraggingRef.current = true;
-
-          if (cardRef.current && onDragStart) {
-            const height = cardRef.current.offsetHeight;
-            onDragStart(height);
-          }
-
-          return { id };
-        },
-        collect: (monitor) => ({
-          isDragging: !!monitor.isDragging(),
-        }),
-        end: (_, monitor) => {
-          isDraggingRef.current = false;
-
-          if (hasEndedRef.current) {
-            return;
-          }
-
-          const dropResult = monitor.getDropResult<DropResult>();
-
-          if (dropResult && onDragEnd) {
-            hasEndedRef.current = true;
-            onDragEnd(dropResult.daysToMove);
-
-            setTimeout(() => {
-              hasEndedRef.current = false;
-            }, 100);
-          }
-        },
-      }),
-      [id, onDragStart, onDragEnd],
-    );
-
-    const dragRef = (el: HTMLDivElement) => {
-      cardRef.current = el;
-      drag(el);
-    };
-
-    const handleTouchStart = (e: React.TouchEvent) => {
-      if (isDragging || isDraggingRef.current) {
-        e.preventDefault();
-        e.stopPropagation();
-      }
-    };
-
-    const handleTouchMove = (e: React.TouchEvent) => {
-      if (isDragging || isDraggingRef.current) {
-        e.preventDefault();
-        e.stopPropagation();
-      }
-    };
 
     return (
       <div className="relative">
         <div
-          className={`rounded-lg shadow-sm hover:shadow-md transition-all bg-white event-card select-none ${
-            isDragging ? "opacity-50 cursor-grabbing" : ""
-          }`}
+          className={`rounded-lg shadow-sm hover:shadow-md transition-all bg-white event-card select-none`}
           data-event-id={id}
-          onClick={() => !isDragging && setIsExpanded(true)}
-          onContextMenu={(e) => e.preventDefault()}
-          onTouchEnd={(e) => e.preventDefault()}
-          onTouchMove={handleTouchMove}
-          onTouchStart={handleTouchStart}
-          ref={dragRef}
+          onClick={() => setIsExpanded(true)}
         >
           <motion.div
             className="flex flex-col gap-4 w-full"
@@ -259,7 +173,7 @@ export const DayEventCard = memo(
         </div>
 
         <AnimatePresence mode="wait">
-          {isExpanded && !isDragging ? (
+          {isExpanded ? (
             <div className="fixed inset-0 z-[9999] isolate">
               <motion.div
                 animate={{ opacity: 1 }}
