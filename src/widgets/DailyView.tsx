@@ -121,6 +121,7 @@ export const DailyView = memo(() => {
   const { data: eventsByDate } = useAllEvents();
   const { mutate: updateEventDate } = useUpdateEventDate();
   const lastChangeRef = useRef<number>(0);
+  const originalEventDateRef = useRef<string | null>(null);
 
   const mouseSensor = useSensor(MouseSensor, {
     activationConstraint: {
@@ -163,15 +164,27 @@ export const DailyView = memo(() => {
     );
     if (draggedEvent) {
       setActiveEvent(draggedEvent);
+      originalEventDateRef.current = activeDay;
     }
   };
 
   const handleDragEnd = () => {
+    const originalDate = originalEventDateRef.current;
+    
+    if (activeEvent && originalDate && originalDate !== activeDay) {
+      updateEventDate({
+        id: activeEvent.id,
+        timestamp: `${activeDay}T${activeEvent.timestamp.split('T')[1]}`
+      });
+    }
+    
     setActiveEvent(null);
+    originalEventDateRef.current = null;
   };
 
   const dayEvents = eventsByDate?.[activeDay] || [];
   const isCurrentDay = isSameDay(new Date(activeDay), new Date());
+  const showDropPlaceholder = activeEvent && originalEventDateRef.current !== activeDay;
 
   return (
     <DndContext
@@ -185,6 +198,15 @@ export const DailyView = memo(() => {
         <div className="flex flex-col gap-4 p-4">
           <DayHeader date={activeDay} />
           <div className="grid grid-cols-1 gap-4">
+            {showDropPlaceholder && (
+              <div 
+                className="rounded-lg border-2 border-dashed border-violet-200 bg-violet-50/50 h-[208px] flex items-center justify-center"
+              >
+                <span className="text-sm font-medium text-violet-500">
+                  Drop event here
+                </span>
+              </div>
+            )}
             {dayEvents.length > 0 ? (
               dayEvents.map((event: Event) => (
                 <DayEventCard
@@ -193,7 +215,7 @@ export const DailyView = memo(() => {
                   onDayChange={() => null}
                 />
               ))
-            ) : (
+            ) : !showDropPlaceholder ? (
               <div className="text-center text-gray-500 py-8">
                 <div className="flex flex-col items-center gap-4">
                   <svg
@@ -216,7 +238,7 @@ export const DailyView = memo(() => {
                   </span>
                 </div>
               </div>
-            )}
+            ) : null}
           </div>
         </div>
       </div>
