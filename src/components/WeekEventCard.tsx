@@ -9,8 +9,6 @@ import { type Event } from "@/models";
 type WeekEventCardProps = Event & {
   onDragStart?: (height: number) => void;
   onDragEnd?: (daysToMove: number) => void;
-  disableAnimation?: boolean;
-  onExpandChange?: (isExpanded: boolean) => void;
 };
 
 type DropResult = {
@@ -43,8 +41,6 @@ export const WeekEventCard = memo(
     duration,
     onDragStart,
     onDragEnd,
-    disableAnimation,
-    onExpandChange,
   }: WeekEventCardProps) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const cardRef = useRef<HTMLDivElement>(null);
@@ -52,8 +48,8 @@ export const WeekEventCard = memo(
     const scrollbarWidthRef = useRef(0);
 
     const getLayoutId = (prefix: string) => {
-      if (disableAnimation) return undefined;
       if (isDragging) return undefined;
+
       return `weekday-${prefix}-${id}`;
     };
 
@@ -111,10 +107,6 @@ export const WeekEventCard = memo(
         };
       }
     }, [isExpanded, handleEscapeKey]);
-
-    useEffect(() => {
-      onExpandChange?.(isExpanded);
-    }, [isExpanded, onExpandChange]);
 
     const eventTime = useMemo(() => {
       const [hours, minutes] = timestamp.split("T")[1].split(":");

@@ -13,8 +13,8 @@ import { WeekDropZone } from "@/components/WeekDropZone";
 import { WeekEventCard } from "@/components/WeekEventCard";
 import { WeeksNavigation } from "@/components/WeeksNavigation";
 import { cnTwMerge } from "@/helpers/cnTwMerge";
-import { useAllEvents } from "@/hooks/useEvents";
-import { useUpdateEventDate } from "@/hooks/useUpdateEventDate";
+import { useAllEvents } from "@/hooks/api/useEvents";
+import { useUpdateEventDate } from "@/hooks/api/useUpdateEventDate";
 
 export const WeeklyCalendarView = () => {
   const { data: eventsByDate } = useAllEvents();

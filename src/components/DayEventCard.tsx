@@ -1,11 +1,9 @@
 import { memo, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
-import { useDraggable } from "@dnd-kit/core";
 
 import { type Event } from "@/models";
-
-const getLayoutId = (prefix: string, id: string) => `day-${prefix}-${id}`;
+import { useDraggable } from "@dnd-kit/core";
 
 export const DayEventCard = memo(
   ({
@@ -16,23 +14,21 @@ export const DayEventCard = memo(
     description,
     location,
     duration,
-    onDayChange,
     isDragOverlay = false,
   }: Event & {
-    onDayChange?: (direction: "prev" | "next") => void;
     isDragOverlay?: boolean;
   }) => {
     const [isLoading, setIsLoading] = useState(true);
     const [isExpanded, setIsExpanded] = useState(false);
-    const cardRef = useRef<HTMLDivElement>(null);
     const pointerStartTimeRef = useRef(0);
     const pointerStartPositionRef = useRef({ x: 0, y: 0 });
 
-    const { attributes, listeners, setNodeRef, transform, isDragging } =
-      useDraggable({
-        id: `draggable-${id}`,
-        data: { id },
-      });
+    const { attributes, listeners, setNodeRef } = useDraggable({
+      id: `draggable-${id}`,
+      data: { id },
+    });
+
+    const getLayoutId = (prefix: string, id: string) => `day-${prefix}-${id}`;
 
     useEffect(() => {
       if (isExpanded) {
