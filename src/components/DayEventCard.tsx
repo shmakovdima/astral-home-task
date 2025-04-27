@@ -2,6 +2,7 @@ import { memo, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 
+import { cnTwMerge } from "@/helpers/cnTwMerge";
 import { type Event } from "@/models";
 import { useDraggable } from "@dnd-kit/core";
 
@@ -128,9 +129,10 @@ export const DayEventCard = memo(
             >
               <Image
                 alt={title}
-                className={`transition-opacity duration-300 ${
-                  isLoading ? "opacity-0" : "opacity-100"
-                } select-none`}
+                className={cnTwMerge(
+                  "transition-opacity duration-300 select-none",
+                  isLoading ? "opacity-0" : "opacity-100",
+                )}
                 draggable={false}
                 fill
                 onLoad={() => setIsLoading(false)}
