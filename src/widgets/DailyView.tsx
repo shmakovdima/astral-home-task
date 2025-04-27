@@ -120,6 +120,7 @@ export const DailyView = memo(() => {
   const [activeEvent, setActiveEvent] = useState<Event | null>(null);
   const { data: eventsByDate } = useAllEvents();
   const { mutate: updateEventDate } = useUpdateEventDate();
+  const lastChangeRef = useRef<number>(0);
 
   const mouseSensor = useSensor(MouseSensor, {
     activationConstraint: {
@@ -136,14 +137,24 @@ export const DailyView = memo(() => {
 
   const sensors = useSensors(mouseSensor, touchSensor);
 
-  const handleDayChange = (direction: "prev" | "next") => {
+  const handleDayChange = useCallback((direction: "prev" | "next") => {
     console.log("handleDayChange", direction, activeDay);
-    const daysToMove = direction === "prev" ? -1 : 1;
-    const baseDate = new Date(activeDay);
-    const newDate = addDays(baseDate, daysToMove);
-    const formattedDate = format(newDate, "yyyy-MM-dd");
-    setActiveDay(formattedDate);
-  };
+    const currentTime = Date.now();
+    
+    // Защита от слишком частых обновлений
+    if (currentTime - lastChangeRef.current < 100) {
+      return;
+    }
+    
+    setActiveDay(currentActiveDay => {
+      const daysToMove = direction === "prev" ? -1 : 1;
+      const baseDate = new Date(currentActiveDay);
+      const newDate = addDays(baseDate, daysToMove);
+      return format(newDate, "yyyy-MM-dd");
+    });
+    
+    lastChangeRef.current = currentTime;
+  }, []);
 
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
@@ -215,7 +226,7 @@ export const DailyView = memo(() => {
             <DayEventCard
               {...activeEvent}
               isDragOverlay
-              onDayChange={handleDayChange}
+              onDayChange={() => null}
             />
           </div>
         ) : null}
