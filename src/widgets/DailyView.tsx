@@ -9,30 +9,26 @@ import { useAllEvents } from "@/hooks/useEvents";
 import { useUpdateEventDate } from "@/hooks/useUpdateEventDate";
 import type { Event } from "@/models";
 import {
-  defaultDropAnimationSideEffects,
   DndContext,
-  DragEndEvent,
   DragMoveEvent,
   DragOverlay,
   DragStartEvent,
   MouseSensor,
   TouchSensor,
-  UniqueIdentifier,
   useSensor,
   useSensors,
   useDndMonitor,
 } from "@dnd-kit/core";
 
-const EDGE_THRESHOLD = 0.3;
-const HOLD_DURATION = 300;
+const EDGE_THRESHOLD = 0.2;
+const HOLD_DURATION = 1500;
 
 const DragMonitor = ({ onDayChange }: { onDayChange: (direction: "prev" | "next") => void }) => {
   const edgeTimeoutRef = useRef<number | null>(null);
-  const lastDirectionRef = useRef<"prev" | "next" | null>(null);
-  const dragStartTimeRef = useRef(0);
-  const edgeStartTimeRef = useRef(0);
+  const lastTransitionTimeRef = useRef(0);
   const rafRef = useRef<number | null>(null);
   const lastDeltaRef = useRef({ x: 0 });
+  const lastDirectionRef = useRef<"prev" | "next" | null>(null);
 
   const clearTimers = () => {
     if (edgeTimeoutRef.current) {
@@ -54,39 +50,32 @@ const DragMonitor = ({ onDayChange }: { onDayChange: (direction: "prev" | "next"
 
     const { x } = lastDeltaRef.current;
 
-    console.log("x", x);
-
     if (x > threshold) {
       newDirection = "next";
     } else if (x < -threshold) {
       newDirection = "prev";
+    } else {
+      newDirection = null;
     }
 
-    if (newDirection !== lastDirectionRef.current || !newDirection) {
-      if (edgeTimeoutRef.current) {
-        window.clearTimeout(edgeTimeoutRef.current);
-        edgeTimeoutRef.current = null;
-      }
-      edgeStartTimeRef.current = 0;
+    console.log("x", Date.now() - lastTransitionTimeRef.current, x, newDirection);
+
+    if (newDirection === null && lastDirectionRef.current !== null) {
+      clearTimers();
+      lastTransitionTimeRef.current = Date.now();
     }
 
-    if (newDirection && !edgeTimeoutRef.current) {
-      if (edgeStartTimeRef.current === 0) {
-        edgeStartTimeRef.current = Date.now();
-      }
+    if (newDirection) {
+      const currentTime = Date.now();
+      const timeSinceLastTransition = currentTime - lastTransitionTimeRef.current;
 
-      const holdStartTime = Date.now();
-      const edgeHoldDuration = holdStartTime - edgeStartTimeRef.current;
-      const daysToSkip = Math.floor(edgeHoldDuration / 1000);
-
-      if (edgeHoldDuration > HOLD_DURATION) {
+      if (timeSinceLastTransition > HOLD_DURATION && !edgeTimeoutRef.current) {
         edgeTimeoutRef.current = window.setTimeout(() => {
-          for (let i = 0; i < Math.max(1, daysToSkip); i++) {
-            onDayChange(newDirection!);
-          }
+          console.log("changed");
+          onDayChange(newDirection);
+          lastTransitionTimeRef.current = Date.now();
           edgeTimeoutRef.current = null;
-          // Не сбрасываем edgeStartTimeRef и lastDeltaRef
-        }, 100);
+        }, 0);
       }
     }
 
@@ -96,9 +85,9 @@ const DragMonitor = ({ onDayChange }: { onDayChange: (direction: "prev" | "next"
 
   useDndMonitor({
     onDragStart: () => {
-      dragStartTimeRef.current = Date.now();
-      edgeStartTimeRef.current = 0;
+      lastTransitionTimeRef.current = Date.now();
       lastDeltaRef.current = { x: 0 };
+      lastDirectionRef.current = null;
       clearTimers();
       rafRef.current = requestAnimationFrame(checkPosition);
     },
@@ -107,15 +96,13 @@ const DragMonitor = ({ onDayChange }: { onDayChange: (direction: "prev" | "next"
     },
     onDragEnd: () => {
       clearTimers();
-      lastDirectionRef.current = null;
-      edgeStartTimeRef.current = 0;
       lastDeltaRef.current = { x: 0 };
+      lastDirectionRef.current = null;
     },
     onDragCancel: () => {
       clearTimers();
-      lastDirectionRef.current = null;
-      edgeStartTimeRef.current = 0;
       lastDeltaRef.current = { x: 0 };
+      lastDirectionRef.current = null;
     }
   });
 
@@ -150,6 +137,7 @@ export const DailyView = memo(() => {
   const sensors = useSensors(mouseSensor, touchSensor);
 
   const handleDayChange = (direction: "prev" | "next") => {
+    console.log("handleDayChange", direction, activeDay);
     const daysToMove = direction === "prev" ? -1 : 1;
     const baseDate = new Date(activeDay);
     const newDate = addDays(baseDate, daysToMove);
@@ -191,7 +179,7 @@ export const DailyView = memo(() => {
                 <DayEventCard
                   key={event.id}
                   {...event}
-                  onDayChange={handleDayChange}
+                  onDayChange={() => null}
                 />
               ))
             ) : (
