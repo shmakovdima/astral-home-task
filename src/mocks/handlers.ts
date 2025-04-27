@@ -18,9 +18,9 @@ const events: EventsByDate = {
     {
       id: "523e4567-e89b-12d3-a456-426614174004",
       title:
-        "Client Meeting TEST LONG TITLE TEST LONG TITLE TEST LONG TITLE TEST LONG TITLE TEST LONG TITLE TEST LONG TITLE",
+        "Client Meeting",
       description:
-        "Review project progress and timeline adjustments.  TEST LONG TITLE TEST LONG TITLE TEST LONG TITLE TEST LONG TITLE TEST LONG TITLE TEST LONG TITLE",
+        "Review project progress and timeline adjustments.",
       imageUrl: "/images/meeting.jpg",
       timestamp: createEvent(dayAfterTomorrow, 11, 30),
       duration: 60,

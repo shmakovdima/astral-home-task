@@ -297,7 +297,7 @@ export const DailyView = () => {
         </DragOverlay>
       </div>
       {isNearLeftEdge ? (
-        <div className="absolute left-0 min-h-[calc(100vh_-_160px)] top-0 w-[100px] bg-gradient-to-r h-screen from-blue-500/20 to-transparent z-[100] flex items-end pb-[60px] justify-start">
+        <div className="fixed left-0 min-h-[calc(100vh_-_160px)] top-0 w-[100px] bg-gradient-to-r h-screen from-blue-500/20 to-transparent z-[100] flex items-end pb-[60px] justify-start">
           <div className="ml-4 bg-blue-500 rounded-full p-2 text-white">
             <svg
               className="w-6 h-6"
@@ -317,7 +317,7 @@ export const DailyView = () => {
       ) : null}
 
       {isNearRightEdge ? (
-        <div className="absolute h-full min-h-[calc(100vh_-_160px)] right-0 top-0 w-[100px] bg-gradient-to-l h-screen from-blue-500/20 to-transparent z-[100] flex items-end pb-[60px] justify-end">
+        <div className="fixed h-full min-h-[calc(100vh_-_160px)] right-0 top-0 w-[100px] bg-gradient-to-l h-screen from-blue-500/20 to-transparent z-[100] flex items-end pb-[60px] justify-end">
           <div className="mr-4 bg-blue-500 rounded-full p-2 text-white">
             <svg
               className="w-6 h-6"
