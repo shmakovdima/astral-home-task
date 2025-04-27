@@ -71,7 +71,6 @@ export const WeeklyCalendarView = () => {
       setIsDayChanged(true);
     }
 
-    // Reset only isTargetDay after a short delay to allow the week change to complete
     setTimeout(() => {
       setIsDayChanged(false);
       setTargetDayIndex(null);

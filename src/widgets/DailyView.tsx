@@ -58,8 +58,6 @@ const DragMonitor = ({ onDayChange }: { onDayChange: (direction: "prev" | "next"
       newDirection = null;
     }
 
-    console.log("x", Date.now() - lastTransitionTimeRef.current, x, newDirection);
-
     if (newDirection === null && lastDirectionRef.current !== null) {
       clearTimers();
       lastTransitionTimeRef.current = Date.now();
@@ -71,7 +69,6 @@ const DragMonitor = ({ onDayChange }: { onDayChange: (direction: "prev" | "next"
 
       if (timeSinceLastTransition > HOLD_DURATION && !edgeTimeoutRef.current) {
         edgeTimeoutRef.current = window.setTimeout(() => {
-          console.log("changed");
           onDayChange(newDirection);
           lastTransitionTimeRef.current = Date.now();
           edgeTimeoutRef.current = null;
@@ -139,7 +136,6 @@ export const DailyView = memo(() => {
   const sensors = useSensors(mouseSensor, touchSensor);
 
   const handleDayChange = useCallback((direction: "prev" | "next") => {
-    console.log("handleDayChange", direction, activeDay);
     const currentTime = Date.now();
     
     if (currentTime - lastChangeRef.current < 100) {
@@ -204,7 +200,7 @@ export const DailyView = memo(() => {
           <div className="grid grid-cols-1 gap-4">
             {showDropPlaceholder && (
               <div 
-                className="rounded-lg border-2 border-dashed border-violet-200 bg-violet-50/50 h-[208px] flex items-center justify-center"
+                className="rounded-lg border-2 border-dashed border-violet-200 bg-violet-50/50 min-h-[226px] flex items-center justify-center"
               >
                 <span className="text-sm font-medium text-violet-500">
                   Drop event here

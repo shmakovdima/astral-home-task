@@ -67,10 +67,8 @@ export const WeekEventCard = memo(
         const html = document.documentElement;
         const body = document.body;
 
-        // Сохраняем текущую ширину вьюпорта
         const vw = document.documentElement.clientWidth;
 
-        // Фиксируем body в текущей позиции
         body.style.position = "fixed";
         body.style.top = `-${scrollY}px`;
         body.style.width = `${vw}px`;
@@ -80,13 +78,11 @@ export const WeekEventCard = memo(
         const html = document.documentElement;
         const scrollY = parseInt(body.style.top || "0");
 
-        // Восстанавливаем состояние
         body.style.position = "";
         body.style.top = "";
         body.style.width = "";
         html.style.width = "";
 
-        // Восстанавливаем позицию скролла
         window.scrollTo(0, scrollY * -1);
       }
 
