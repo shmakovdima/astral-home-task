@@ -268,11 +268,11 @@ export const DailyView = () => {
         onEdgeChange={handleEdgeChange}
       />
       <div
-        className="flex flex-col gap-4 min-h-[100dvh] relative"
+        className="flex flex-col gap-4 min-h-dvh relative pb-safe"
         ref={ref}
       >
         <DayNavigation activeDay={activeDay} setActiveDay={setActiveDay} />
-        <div className="flex flex-col gap-4 p-4 flex-1">
+        <div className="flex flex-col gap-4 p-4">
           <DayHeader date={activeDay} />
           <div className="grid grid-cols-1 gap-4">
             {showDropPlaceholder ? (
