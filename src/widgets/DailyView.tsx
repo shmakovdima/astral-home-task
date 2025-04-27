@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback, useEffect, useRef, memo } from "react";
 import { addDays, format, isSameDay } from "date-fns";
 
 import { DayEventCard } from "@/components/DayEventCard";
@@ -11,14 +11,92 @@ import type { Event } from "@/models";
 import {
   defaultDropAnimationSideEffects,
   DndContext,
+  DragEndEvent,
   DragOverlay,
+  DragStartEvent,
   MouseSensor,
   TouchSensor,
   useSensor,
   useSensors,
+  useDndMonitor,
 } from "@dnd-kit/core";
 
-export const DailyView = () => {
+const EDGE_THRESHOLD = 0.2;
+const HOLD_DURATION = 300;
+
+const DragMonitor = ({ onDayChange }: { onDayChange: (direction: "prev" | "next") => void }) => {
+  const edgeTimeoutRef = useRef<number | null>(null);
+  const lastDirectionRef = useRef<"prev" | "next" | null>(null);
+  const hasChangedDayRef = useRef(false);
+  const dragStartTimeRef = useRef(0);
+
+  useDndMonitor({
+    onDragStart: () => {
+      dragStartTimeRef.current = Date.now();
+      hasChangedDayRef.current = false;
+    },
+    onDragMove: (event) => {
+      if (!onDayChange || hasChangedDayRef.current) return;
+
+      const { delta } = event;
+      const screenWidth = window.innerWidth;
+      const threshold = screenWidth * EDGE_THRESHOLD;
+      let newDirection: "prev" | "next" | null = null;
+
+      if (delta.x > threshold) {
+        newDirection = "next";
+      } else if (delta.x < -threshold) {
+        newDirection = "prev";
+      }
+
+      if (newDirection !== lastDirectionRef.current || !newDirection) {
+        if (edgeTimeoutRef.current) {
+          window.clearTimeout(edgeTimeoutRef.current);
+          edgeTimeoutRef.current = null;
+        }
+        hasChangedDayRef.current = false;
+      }
+
+      if (newDirection && !edgeTimeoutRef.current && !hasChangedDayRef.current) {
+        const holdStartTime = Date.now();
+        const pointerHoldDuration = holdStartTime - dragStartTimeRef.current;
+
+        if (pointerHoldDuration > HOLD_DURATION) {
+          edgeTimeoutRef.current = window.setTimeout(() => {
+            onDayChange(newDirection!);
+            hasChangedDayRef.current = true;
+
+            setTimeout(() => {
+              hasChangedDayRef.current = false;
+            }, 300);
+          }, 100);
+        }
+      }
+
+      lastDirectionRef.current = newDirection;
+    },
+    onDragEnd: () => {
+      if (edgeTimeoutRef.current) {
+        window.clearTimeout(edgeTimeoutRef.current);
+        edgeTimeoutRef.current = null;
+      }
+      lastDirectionRef.current = null;
+      hasChangedDayRef.current = false;
+    },
+    onDragCancel: () => {
+      if (edgeTimeoutRef.current) {
+        window.clearTimeout(edgeTimeoutRef.current);
+        edgeTimeoutRef.current = null;
+      }
+      lastDirectionRef.current = null;
+      hasChangedDayRef.current = false;
+    }
+  });
+
+  return null;
+};
+
+export const DailyView = memo(() => {
   const [activeDay, setActiveDay] = useState(format(new Date(), "yyyy-MM-dd"));
   const [activeEvent, setActiveEvent] = useState<Event | null>(null);
   const { data: eventsByDate } = useAllEvents();
@@ -39,33 +117,6 @@ export const DailyView = () => {
 
   const sensors = useSensors(mouseSensor, touchSensor);
 
-  /*
-   *const handlePrevDay = () => {
-   *  const baseDate = new Date(activeDay);
-   *  const newDate = addDays(baseDate, -1);
-   *  const formattedDate = format(newDate, "yyyy-MM-dd");
-   *  setActiveDay(formattedDate);
-   *};
-   *
-   *const handleNextDay = () => {
-   *  const baseDate = new Date(activeDay);
-   *  const newDate = addDays(baseDate, 1);
-   *  const formattedDate = format(newDate, "yyyy-MM-dd");
-   *  setActiveDay(formattedDate);
-   *};
-   *
-   *const { ref } = useSwipeNavigation({
-   *  onSwipe: (direction) => {
-   *    if (direction === "right") {
-   *      handlePrevDay();
-   *    } else {
-   *      handleNextDay();
-   *    }
-   *  },
-   *  minSwipeDistance: 50,
-   *});
-   */
-
   const handleDayChange = (direction: "prev" | "next") => {
     const daysToMove = direction === "prev" ? -1 : 1;
     const baseDate = new Date(activeDay);
@@ -74,13 +125,11 @@ export const DailyView = () => {
     setActiveDay(formattedDate);
   };
 
-  const handleDragStart = (event: any) => {
+  const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
-
-    const draggedEvent = dayEvents.find(
+    const draggedEvent = eventsByDate?.[activeDay]?.find(
       (e) => e.id === active.data.current?.id,
     );
-
     if (draggedEvent) {
       setActiveEvent(draggedEvent);
     }
@@ -99,6 +148,7 @@ export const DailyView = () => {
       onDragStart={handleDragStart}
       sensors={sensors}
     >
+      <DragMonitor onDayChange={handleDayChange} />
       <div className="flex flex-col gap-4 min-h-[calc(100vh_-_200px)]">
         <DaysNavigation activeDay={activeDay} setActiveDay={setActiveDay} />
         <div className="flex flex-col gap-4 p-4">
@@ -141,7 +191,7 @@ export const DailyView = () => {
       </div>
       <DragOverlay dropAnimation={null} modifiers={[]}>
         {activeEvent ? (
-          <div className="shadow-lg opacity-50">
+          <div className="shadow-lg opacity-90">
             <DayEventCard
               {...activeEvent}
               isDragOverlay
@@ -152,4 +202,4 @@ export const DailyView = () => {
       </DragOverlay>
     </DndContext>
   );
-};
+});

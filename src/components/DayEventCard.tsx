@@ -5,9 +5,9 @@ import { AnimatePresence, motion } from "framer-motion";
 import { type Event } from "@/models";
 import { useDraggable } from "@dnd-kit/core";
 
-const EDGE_THRESHOLD = 0.2; // 20% of screen width
-const HOLD_DURATION = 200; // 200ms для смены дня
-const CLICK_DURATION = 200; // 200ms для клика
+const EDGE_THRESHOLD = 0.2;
+const HOLD_DURATION = 300;
+const CLICK_DURATION = 200;
 
 const getScrollbarWidth = () => {
   const outer = document.createElement("div");
@@ -71,6 +71,8 @@ export const DayEventCard = memo(
       const handleDragMove = () => {
         if (!transform?.x || !onDayChange) return;
 
+        console.log("transform", transform);
+
         const screenWidth = window.innerWidth;
         const threshold = screenWidth * EDGE_THRESHOLD;
         let newDirection: "prev" | "next" | null = null;
@@ -90,7 +92,6 @@ export const DayEventCard = memo(
           hasChangedDayRef.current = false;
         }
 
-        // Запускаем новый таймер только если мы у края и нет активного таймера
         if (newDirection && !edgeTimeoutRef.current && !hasChangedDayRef.current) {
           const holdStartTime = Date.now();
           const pointerHoldDuration = holdStartTime - pointerStartTimeRef.current;
@@ -99,7 +100,12 @@ export const DayEventCard = memo(
             edgeTimeoutRef.current = window.setTimeout(() => {
               onDayChange(newDirection!);
               hasChangedDayRef.current = true;
-              // Сбрасываем флаг через небольшую задержку, чтобы можно было сменить день снова
+              
+              // Сбрасываем позицию карточки
+              if (cardRef.current) {
+                cardRef.current.style.transform = 'translate3d(0px, 0px, 0)';
+              }
+
               setTimeout(() => {
                 hasChangedDayRef.current = false;
               }, 300);
@@ -124,6 +130,11 @@ export const DayEventCard = memo(
       pointerStartTimeRef.current = Date.now();
       pointerStartPositionRef.current = { x: e.clientX, y: e.clientY };
       hasChangedDayRef.current = false;
+      
+      // Сбрасываем transform при новом взаимодействии
+      if (cardRef.current) {
+        cardRef.current.style.transform = '';
+      }
     };
 
     const handlePointerUp = (e: React.PointerEvent) => {
