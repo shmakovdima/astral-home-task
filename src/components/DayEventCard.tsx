@@ -1,8 +1,12 @@
 import { memo, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
+import { useDraggable } from "@dnd-kit/core";
 
 import { type Event } from "@/models";
+
+const EDGE_THRESHOLD = 0.2; // 20% of screen width
+const HOLD_DURATION = 1500; // 1.5 seconds
 
 const getScrollbarWidth = () => {
   const outer = document.createElement("div");
@@ -19,6 +23,10 @@ const getScrollbarWidth = () => {
   return scrollbarWidth;
 };
 
+const getLayoutId = (prefix: string, id: string) => {
+  return `day-${prefix}-${id}`;
+};
+
 export const DayEventCard = memo(
   ({
     id,
@@ -28,21 +36,106 @@ export const DayEventCard = memo(
     description,
     location,
     duration,
-  }: Event) => {
+    onDayChange,
+  }: Event & { onDayChange?: (direction: 'prev' | 'next') => void }) => {
     const [isLoading, setIsLoading] = useState(true);
     const [isExpanded, setIsExpanded] = useState(false);
     const cardRef = useRef<HTMLDivElement>(null);
-    const hasEndedRef = useRef(false);
-    const scrollbarWidthRef = useRef(0);
-    const isDraggingRef = useRef(false);
+    const dragStartTimeRef = useRef(Date.now());
+    const wasDragged = useRef(false);
+    const edgeTimeoutRef = useRef<number | null>(null);
+    const lastDirectionRef = useRef<'prev' | 'next' | null>(null);
+    const pointerStartTimeRef = useRef(0);
+    const pointerStartPositionRef = useRef({ x: 0, y: 0 });
 
-    const getLayoutId = (prefix: string) => {
-      return `day-${prefix}-${id}`;
-    };
+    const {
+      attributes,
+      listeners,
+      setNodeRef,
+      transform,
+      isDragging,
+    } = useDraggable({
+      id: `draggable-${id}`,
+      data: { id },
+    });
 
     useEffect(() => {
-      scrollbarWidthRef.current = getScrollbarWidth();
-    }, []);
+      const handleDragMove = () => {
+        if (!transform?.x || !onDayChange) return;
+
+        const screenWidth = window.innerWidth;
+        const threshold = screenWidth * EDGE_THRESHOLD;
+        let newDirection: 'prev' | 'next' | null = null;
+
+        if (transform.x > threshold) {
+          newDirection = 'prev';
+        } else if (transform.x < -threshold) {
+          newDirection = 'next';
+        }
+
+        // Clear timeout if direction changed or we're not at an edge
+        if (newDirection !== lastDirectionRef.current || !newDirection) {
+          if (edgeTimeoutRef.current) {
+            clearTimeout(edgeTimeoutRef.current);
+            edgeTimeoutRef.current = null;
+          }
+        }
+
+        // Start new timeout only if we're at an edge and don't have an active timeout
+        if (newDirection && !edgeTimeoutRef.current) {
+          edgeTimeoutRef.current = window.setTimeout(() => {
+            onDayChange(newDirection);
+          }, HOLD_DURATION);
+        }
+
+        lastDirectionRef.current = newDirection;
+      };
+
+      handleDragMove();
+
+      return () => {
+        if (edgeTimeoutRef.current) {
+          clearTimeout(edgeTimeoutRef.current);
+          edgeTimeoutRef.current = null;
+        }
+      };
+    }, [transform?.x, onDayChange]);
+
+    // Reset everything when dragging stops
+    useEffect(() => {
+      if (!isDragging) {
+        if (edgeTimeoutRef.current) {
+          clearTimeout(edgeTimeoutRef.current);
+          edgeTimeoutRef.current = null;
+        }
+        lastDirectionRef.current = null;
+        setTimeout(() => {
+          wasDragged.current = false;
+        }, 0);
+      } else {
+        wasDragged.current = true;
+      }
+    }, [isDragging]);
+
+    const handlePointerDown = (e: React.PointerEvent) => {
+      pointerStartTimeRef.current = Date.now();
+      pointerStartPositionRef.current = { x: e.clientX, y: e.clientY };
+    };
+
+    const handlePointerUp = (e: React.PointerEvent) => {
+      const pointerUpTime = Date.now();
+      const pointerDuration = pointerUpTime - pointerStartTimeRef.current;
+      
+      const dx = Math.abs(e.clientX - pointerStartPositionRef.current.x);
+      const dy = Math.abs(e.clientY - pointerStartPositionRef.current.y);
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      console.log('Duration:', pointerDuration, 'Distance:', distance);
+
+      if (pointerDuration < 200 && distance < 5) {
+        setIsExpanded(true);
+      }
+    };
 
     useEffect(() => {
       if (isExpanded) {
@@ -105,21 +198,28 @@ export const DayEventCard = memo(
       return `${hours} ${hours === 1 ? "hour" : "hours"} ${minutes} min`;
     }, [duration]);
 
-
     return (
       <div className="relative">
         <div
-          className={`rounded-lg shadow-sm hover:shadow-md transition-all bg-white event-card select-none`}
+          ref={setNodeRef}
+          className={`rounded-lg shadow-sm hover:shadow-md transition-all bg-white event-card select-none cursor-pointer ${isDragging ? 'opacity-50' : ''}`}
           data-event-id={id}
-          onClick={() => setIsExpanded(true)}
+          style={{
+            transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
+            transition: !isDragging ? 'transform 0.3s ease-out' : undefined,
+          }}
+          onPointerDown={handlePointerDown}
+          onPointerUp={handlePointerUp}
+          {...attributes}
+          {...listeners}
         >
           <motion.div
             className="flex flex-col gap-4 w-full"
-            layoutId={getLayoutId("card")}
+            layoutId={getLayoutId("card", id)}
           >
             <motion.div
               className="relative w-full h-32 rounded-t-lg overflow-hidden"
-              layoutId={getLayoutId("image-container")}
+              layoutId={getLayoutId("image-container", id)}
             >
               <Image
                 alt={title}
@@ -135,7 +235,7 @@ export const DayEventCard = memo(
               />
               <motion.div
                 className="absolute flex justify-center align-middle top-3 right-3 px-2 py-1 rounded-full bg-gradient-to-r from-indigo-600 to-violet-600"
-                layoutId={getLayoutId("time")}
+                layoutId={getLayoutId("time", id)}
               >
                 <span className="text-xs font-medium text-white">
                   {eventTime}
@@ -144,26 +244,26 @@ export const DayEventCard = memo(
             </motion.div>
             <motion.div
               className="flex flex-col p-4"
-              layoutId={getLayoutId("content")}
+              layoutId={getLayoutId("content", id)}
             >
               <motion.div
                 className="overflow-hidden"
-                layoutId={getLayoutId("title-container")}
+                layoutId={getLayoutId("title-container", id)}
               >
                 <motion.h3
                   className="text-[18px] leading-[22px] font-semibold text-gray-900 w-full whitespace-nowrap text-ellipsis select-none"
-                  layoutId={getLayoutId("title")}
+                  layoutId={getLayoutId("title", id)}
                 >
                   {title}
                 </motion.h3>
               </motion.div>
               <motion.div
                 className="overflow-hidden"
-                layoutId={getLayoutId("description-container")}
+                layoutId={getLayoutId("description-container", id)}
               >
                 <motion.p
                   className="mt-2 text-[14px] leading-5 text-gray-600 line-clamp-2 select-none"
-                  layoutId={getLayoutId("description")}
+                  layoutId={getLayoutId("description", id)}
                 >
                   {description}
                 </motion.p>
@@ -192,11 +292,11 @@ export const DayEventCard = memo(
               >
                 <motion.div
                   className="flex flex-col w-full h-full bg-white select-none"
-                  layoutId={getLayoutId("card")}
+                  layoutId={getLayoutId("card", id)}
                 >
                   <motion.div
                     className="relative w-full h-[30vh]"
-                    layoutId={getLayoutId("image-container")}
+                    layoutId={getLayoutId("image-container", id)}
                   >
                     <Image
                       alt={title}
@@ -208,7 +308,7 @@ export const DayEventCard = memo(
                     />
                     <motion.div
                       className="absolute flex justify-center align-middle top-5 right-4 px-2 py-1 rounded-full bg-gradient-to-r from-indigo-600 to-violet-600"
-                      layoutId={getLayoutId("time")}
+                      layoutId={getLayoutId("time", id)}
                     >
                       <span className="text-xs font-medium text-white">
                         {eventTime}
@@ -242,26 +342,26 @@ export const DayEventCard = memo(
                   </motion.div>
                   <motion.div
                     className="flex flex-col p-4"
-                    layoutId={getLayoutId("content")}
+                    layoutId={getLayoutId("content", id)}
                   >
                     <motion.div
                       className="overflow-hidden"
-                      layoutId={getLayoutId("title-container")}
+                      layoutId={getLayoutId("title-container", id)}
                     >
                       <motion.h3
                         className="text-[18px] leading-[22px] font-semibold text-gray-900 select-none"
-                        layoutId={getLayoutId("title")}
+                        layoutId={getLayoutId("title", id)}
                       >
                         {title}
                       </motion.h3>
                     </motion.div>
                     <motion.div
                       className="overflow-hidden"
-                      layoutId={getLayoutId("description-container")}
+                      layoutId={getLayoutId("description-container", id)}
                     >
                       <motion.p
                         className="mt-2 text-[14px] leading-5 text-gray-600 select-none"
-                        layoutId={getLayoutId("description")}
+                        layoutId={getLayoutId("description", id)}
                       >
                         {description}
                       </motion.p>
@@ -324,3 +424,5 @@ export const DayEventCard = memo(
     );
   },
 );
+
+DayEventCard.displayName = "DayEventCard";
