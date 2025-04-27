@@ -6,7 +6,8 @@ import { type Event } from "@/models";
 import { useDraggable } from "@dnd-kit/core";
 
 const EDGE_THRESHOLD = 0.2; // 20% of screen width
-const HOLD_DURATION = 1500; // 1.5 seconds
+const HOLD_DURATION = 200; // 200ms для смены дня
+const CLICK_DURATION = 200; // 200ms для клика
 
 const getScrollbarWidth = () => {
   const outer = document.createElement("div");
@@ -43,18 +44,28 @@ export const DayEventCard = memo(
     const [isLoading, setIsLoading] = useState(true);
     const [isExpanded, setIsExpanded] = useState(false);
     const cardRef = useRef<HTMLDivElement>(null);
-    const dragStartTimeRef = useRef(Date.now());
-    const wasDragged = useRef(false);
     const edgeTimeoutRef = useRef<number | null>(null);
     const lastDirectionRef = useRef<"prev" | "next" | null>(null);
     const pointerStartTimeRef = useRef(0);
     const pointerStartPositionRef = useRef({ x: 0, y: 0 });
+    const hasChangedDayRef = useRef(false);
 
     const { attributes, listeners, setNodeRef, transform, isDragging } =
       useDraggable({
         id: `draggable-${id}`,
         data: { id },
       });
+
+    useEffect(() => {
+      if (!isDragging) {
+        hasChangedDayRef.current = false;
+        if (edgeTimeoutRef.current) {
+          clearTimeout(edgeTimeoutRef.current);
+          edgeTimeoutRef.current = null;
+        }
+        lastDirectionRef.current = null;
+      }
+    }, [isDragging]);
 
     useEffect(() => {
       const handleDragMove = () => {
@@ -65,24 +76,35 @@ export const DayEventCard = memo(
         let newDirection: "prev" | "next" | null = null;
 
         if (transform.x > threshold) {
-          newDirection = "prev";
-        } else if (transform.x < -threshold) {
           newDirection = "next";
+        } else if (transform.x < -threshold) {
+          newDirection = "prev";
         }
 
-        // Clear timeout if direction changed or we're not at an edge
+        // Очищаем таймер если изменилось направление или мы не у края
         if (newDirection !== lastDirectionRef.current || !newDirection) {
           if (edgeTimeoutRef.current) {
             clearTimeout(edgeTimeoutRef.current);
             edgeTimeoutRef.current = null;
           }
+          hasChangedDayRef.current = false;
         }
 
-        // Start new timeout only if we're at an edge and don't have an active timeout
-        if (newDirection && !edgeTimeoutRef.current) {
-          edgeTimeoutRef.current = window.setTimeout(() => {
-            onDayChange(newDirection);
-          }, HOLD_DURATION);
+        // Запускаем новый таймер только если мы у края и нет активного таймера
+        if (newDirection && !edgeTimeoutRef.current && !hasChangedDayRef.current) {
+          const holdStartTime = Date.now();
+          const pointerHoldDuration = holdStartTime - pointerStartTimeRef.current;
+
+          if (pointerHoldDuration > HOLD_DURATION) {
+            edgeTimeoutRef.current = window.setTimeout(() => {
+              onDayChange(newDirection!);
+              hasChangedDayRef.current = true;
+              // Сбрасываем флаг через небольшую задержку, чтобы можно было сменить день снова
+              setTimeout(() => {
+                hasChangedDayRef.current = false;
+              }, 300);
+            }, 100);
+          }
         }
 
         lastDirectionRef.current = newDirection;
@@ -98,40 +120,21 @@ export const DayEventCard = memo(
       };
     }, [transform?.x, onDayChange]);
 
-    // Reset everything when dragging stops
-    useEffect(() => {
-      if (!isDragging) {
-        if (edgeTimeoutRef.current) {
-          clearTimeout(edgeTimeoutRef.current);
-          edgeTimeoutRef.current = null;
-        }
-
-        lastDirectionRef.current = null;
-
-        setTimeout(() => {
-          wasDragged.current = false;
-        }, 0);
-      } else {
-        wasDragged.current = true;
-      }
-    }, [isDragging]);
-
     const handlePointerDown = (e: React.PointerEvent) => {
       pointerStartTimeRef.current = Date.now();
       pointerStartPositionRef.current = { x: e.clientX, y: e.clientY };
+      hasChangedDayRef.current = false;
     };
 
     const handlePointerUp = (e: React.PointerEvent) => {
       const pointerUpTime = Date.now();
       const pointerDuration = pointerUpTime - pointerStartTimeRef.current;
-
+      
       const dx = Math.abs(e.clientX - pointerStartPositionRef.current.x);
       const dy = Math.abs(e.clientY - pointerStartPositionRef.current.y);
       const distance = Math.sqrt(dx * dx + dy * dy);
 
-      console.log("Duration:", pointerDuration, "Distance:", distance);
-
-      if (pointerDuration < 200 && distance < 5) {
+      if (pointerDuration < CLICK_DURATION && distance < 5) {
         setIsExpanded(true);
       }
     };
