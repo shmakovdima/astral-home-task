@@ -19,6 +19,7 @@ import {
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
+import { motion } from "framer-motion";
 
 const EDGE_THRESHOLD = 0.2;
 const HOLD_DURATION = 1500;
@@ -28,13 +29,14 @@ const DragMonitor = ({
   onEdgeChange,
 }: {
   onDayChange: (direction: "prev" | "next") => void;
-  onEdgeChange?: (isLeft: boolean, isRight: boolean) => void;
+  onEdgeChange?: (isLeft: boolean, isRight: boolean, progress?: number) => void;
 }) => {
   const edgeTimeoutRef = useRef<number | null>(null);
   const lastTransitionTimeRef = useRef(0);
   const rafRef = useRef<number | null>(null);
   const lastDeltaRef = useRef({ x: 0 });
   const lastDirectionRef = useRef<"prev" | "next" | null>(null);
+  const wasInEdgeZoneRef = useRef(false);
 
   const clearTimers = () => {
     if (edgeTimeoutRef.current) {
@@ -56,28 +58,35 @@ const DragMonitor = ({
     let newDirection: "prev" | "next" | null = null;
 
     const { x } = lastDeltaRef.current;
+    const isInEdgeZone = Math.abs(x) > threshold;
+
+    // Reset timer when entering edge zone
+    if (!wasInEdgeZoneRef.current && isInEdgeZone) {
+      lastTransitionTimeRef.current = Date.now();
+    }
+    wasInEdgeZoneRef.current = isInEdgeZone;
 
     if (x > threshold) {
       newDirection = "next";
-      onEdgeChange?.(false, true);
+      const progress = Math.min((Date.now() - lastTransitionTimeRef.current) / HOLD_DURATION, 1);
+      onEdgeChange?.(false, true, progress);
     } else if (x < -threshold) {
       newDirection = "prev";
-      onEdgeChange?.(true, false);
+      const progress = Math.min((Date.now() - lastTransitionTimeRef.current) / HOLD_DURATION, 1);
+      onEdgeChange?.(true, false, progress);
     } else {
       newDirection = null;
-      onEdgeChange?.(false, false);
+      onEdgeChange?.(false, false, 0);
+      wasInEdgeZoneRef.current = false;
     }
 
     if (newDirection === null && lastDirectionRef.current !== null) {
       clearTimers();
-      lastTransitionTimeRef.current = Date.now();
     }
 
     if (newDirection) {
       const currentTime = Date.now();
-
-      const timeSinceLastTransition =
-        currentTime - lastTransitionTimeRef.current;
+      const timeSinceLastTransition = currentTime - lastTransitionTimeRef.current;
 
       if (timeSinceLastTransition > HOLD_DURATION && !edgeTimeoutRef.current) {
         edgeTimeoutRef.current = window.setTimeout(() => {
@@ -97,6 +106,7 @@ const DragMonitor = ({
       lastTransitionTimeRef.current = Date.now();
       lastDeltaRef.current = { x: 0 };
       lastDirectionRef.current = null;
+      wasInEdgeZoneRef.current = false;
       clearTimers();
       rafRef.current = requestAnimationFrame(checkPosition);
     },
@@ -107,13 +117,15 @@ const DragMonitor = ({
       clearTimers();
       lastDeltaRef.current = { x: 0 };
       lastDirectionRef.current = null;
-      onEdgeChange?.(false, false);
+      wasInEdgeZoneRef.current = false;
+      onEdgeChange?.(false, false, 0);
     },
     onDragCancel: () => {
       clearTimers();
       lastDeltaRef.current = { x: 0 };
       lastDirectionRef.current = null;
-      onEdgeChange?.(false, false);
+      wasInEdgeZoneRef.current = false;
+      onEdgeChange?.(false, false, 0);
     },
   });
 
@@ -138,6 +150,8 @@ export const DailyView = () => {
   const { mutate: updateEventDate } = useUpdateEventDate();
   const lastChangeRef = useRef<number>(0);
   const originalEventDateRef = useRef<string | null>(null);
+  const [edgeProgress, setEdgeProgress] = useState(0);
+  const edgeTimerRef = useRef<NodeJS.Timeout>(null);
 
   const mouseSensor = useSensor(MouseSensor, {
     activationConstraint: {
@@ -222,9 +236,10 @@ export const DailyView = () => {
   const showDropPlaceholder =
     activeEvent && originalEventDateRef.current !== activeDay;
 
-  const handleEdgeChange = useCallback((isLeft: boolean, isRight: boolean) => {
+  const handleEdgeChange = useCallback((isLeft: boolean, isRight: boolean, progress: number = 0) => {
     setIsNearLeftEdge(isLeft);
     setIsNearRightEdge(isRight);
+    setEdgeProgress(progress);
   }, []);
 
   return (
@@ -297,41 +312,101 @@ export const DailyView = () => {
         </DragOverlay>
       </div>
       {isNearLeftEdge ? (
-        <div className="fixed left-0 min-h-[calc(100vh_-_160px)] top-0 w-[100px] bg-gradient-to-r h-screen from-blue-500/20 to-transparent z-[100] flex items-end pb-[60px] justify-start">
-          <div className="ml-4 bg-blue-500 rounded-full p-2 text-white">
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                d="M19 12H5m7 7l-7-7 7-7"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-              />
-            </svg>
+        <div className="fixed left-0 min-h-[calc(100vh_-_160px)] top-0 w-[100px] bg-gradient-to-r h-screen from-blue-500/20 to-transparent z-[100] flex items-start pt-[195px] justify-start">
+          <div className="ml-4 relative">
+            <div className="relative z-10">
+              <div className="bg-blue-500 rounded-full p-2 text-white relative">
+                <svg className="absolute top-0 left-0 -rotate-90" width="40" height="40">
+                  <circle
+                    cx="20"
+                    cy="20"
+                    r="19"
+                    fill="none"
+                    stroke="white"
+                    strokeWidth="2"
+                  />
+                  <circle
+                    cx="20"
+                    cy="20"
+                    r="19"
+                    fill="none"
+                    stroke="url(#gradient)"
+                    strokeWidth="2"
+                    strokeDasharray="120 120"
+                    strokeDashoffset={120 - (edgeProgress * 120)}
+                  />
+                  <defs>
+                    <linearGradient id="gradient" gradientUnits="userSpaceOnUse" x1="20" y1="0" x2="20" y2="40">
+                      <stop offset="0%" stopColor="#8B5CF6" />
+                      <stop offset="100%" stopColor="#3B82F6" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+                <svg
+                  className="w-6 h-6 relative z-10"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M19 12H5m7 7l-7-7 7-7"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                  />
+                </svg>
+              </div>
+            </div>
           </div>
         </div>
       ) : null}
 
       {isNearRightEdge ? (
-        <div className="fixed h-full min-h-[calc(100vh_-_160px)] right-0 top-0 w-[100px] bg-gradient-to-l h-screen from-blue-500/20 to-transparent z-[100] flex items-end pb-[60px] justify-end">
-          <div className="mr-4 bg-blue-500 rounded-full p-2 text-white">
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                d="M5 12h14m-7-7l7 7-7 7"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-              />
-            </svg>
+        <div className="fixed h-full min-h-[calc(100vh_-_160px)] right-0 top-0 w-[100px] bg-gradient-to-l h-screen from-blue-500/20 to-transparent z-[100] flex items-start pt-[195px] justify-end">
+          <div className="mr-4 relative">
+            <div className="relative z-10">
+              <div className="bg-blue-500 rounded-full p-2 text-white relative">
+                <svg className="absolute top-0 left-0 -rotate-90" width="40" height="40">
+                  <circle
+                    cx="20"
+                    cy="20"
+                    r="19"
+                    fill="none"
+                    stroke="white"
+                    strokeWidth="2"
+                  />
+                  <circle
+                    cx="20"
+                    cy="20"
+                    r="19"
+                    fill="none"
+                    stroke="url(#gradient)"
+                    strokeWidth="2"
+                    strokeDasharray="120 120"
+                    strokeDashoffset={120 - (edgeProgress * 120)}
+                  />
+                  <defs>
+                    <linearGradient id="gradient" gradientUnits="userSpaceOnUse" x1="20" y1="0" x2="20" y2="40">
+                      <stop offset="0%" stopColor="#8B5CF6" />
+                      <stop offset="100%" stopColor="#3B82F6" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+                <svg
+                  className="w-6 h-6 relative z-10"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M5 12h14m-7-7l7 7-7 7"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                  />
+                </svg>
+              </div>
+            </div>
           </div>
         </div>
       ) : null}

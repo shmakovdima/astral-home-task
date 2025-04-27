@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef } from "react";
 import { useDrop } from "react-dnd";
 
-type WeekDropZoneProps = {
+type Props = {
   children: React.ReactNode;
   onDayChange: (daysToMove: number) => void;
   onDrop: (daysToMove: number) => void;
@@ -15,7 +15,7 @@ export const WeekDropZone = ({
   onDrop,
   onWeekChange,
   onEdgeChange,
-}: WeekDropZoneProps) => {
+}: Props) => {
   const startX = useRef<number | null>(null);
   const daysToMove = useRef<number>(0);
   const weekChangeTimerRef = useRef<NodeJS.Timeout | null>(null);

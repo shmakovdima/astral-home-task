@@ -1,11 +1,11 @@
 import { memo, useMemo } from "react";
 import { format } from "date-fns";
 
-type DayHeaderProps = {
+type Props = {
   date: string;
 };
 
-export const DayHeader = memo(({ date }: DayHeaderProps) => {
+export const DayHeader = memo(({ date }: Props) => {
   const formattedDate = useMemo(() => {
     if (!date) return "";
     return format(new Date(date), "EEE MMM d yyyy");

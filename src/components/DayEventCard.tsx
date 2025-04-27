@@ -6,6 +6,10 @@ import { formatDurationTime } from "@/helpers/dateUtils";
 import { type Event } from "@/models";
 import { useDraggable } from "@dnd-kit/core";
 
+type Props = Event & {
+  isDragOverlay?: boolean;
+}
+
 export const DayEventCard = memo(
   ({
     id,
@@ -16,9 +20,7 @@ export const DayEventCard = memo(
     location,
     duration,
     isDragOverlay = false,
-  }: Event & {
-    isDragOverlay?: boolean;
-  }) => {
+  }: Props) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const pointerStartTimeRef = useRef(0);
     const pointerStartPositionRef = useRef({ x: 0, y: 0 });

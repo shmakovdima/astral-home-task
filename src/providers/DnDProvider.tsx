@@ -3,11 +3,11 @@ import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { TouchBackend } from "react-dnd-touch-backend";
 
-type DnDProviderProps = {
+type Props = {
   children: ReactNode;
 };
 
-export const DnDProvider = ({ children }: DnDProviderProps) => {
+export const DnDProvider = ({ children }: Props) => {
   const isTouchDevice =
     typeof window !== "undefined" && "ontouchstart" in window;
 

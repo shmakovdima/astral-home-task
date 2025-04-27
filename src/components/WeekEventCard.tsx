@@ -7,7 +7,7 @@ import { cnTwMerge } from "@/helpers/cnTwMerge";
 import { formatDurationTime } from "@/helpers/dateUtils";
 import { type Event } from "@/models";
 
-type WeekEventCardProps = Event & {
+type Props = Event & {
   onDragStart?: (height: number) => void;
   onDragEnd?: (daysToMove: number) => void;
 };
@@ -42,7 +42,7 @@ export const WeekEventCard = memo(
     duration,
     onDragStart,
     onDragEnd,
-  }: WeekEventCardProps) => {
+  }: Props) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const cardRef = useRef<HTMLDivElement>(null);
     const hasEndedRef = useRef(false);
