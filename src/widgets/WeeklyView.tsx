@@ -312,7 +312,7 @@ export const WeeklyView = () => {
                           />
                         </svg>
                         <span className="text-xs font-medium text-blue-600">
-                          Drop here to move event
+                          Drop event to this day
                         </span>
                       </div>
                     </div>

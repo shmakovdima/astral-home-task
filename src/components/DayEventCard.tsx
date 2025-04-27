@@ -7,7 +7,7 @@ import { type Event } from "@/models";
 import { useDraggable } from "@dnd-kit/core";
 
 type Props = Event & {
-  isDragOverlay?: boolean;
+  disabledAnimation?: boolean;
 };
 
 export const DayEventCard = memo(
@@ -19,9 +19,10 @@ export const DayEventCard = memo(
     description,
     location,
     duration,
-    isDragOverlay = false,
+    disabledAnimation = false,
   }: Props) => {
     const [isExpanded, setIsExpanded] = useState(false);
+    const [isInitialRender, setIsInitialRender] = useState(true);
     const pointerStartTimeRef = useRef(0);
     const pointerStartPositionRef = useRef({ x: 0, y: 0 });
 
@@ -31,6 +32,14 @@ export const DayEventCard = memo(
     });
 
     const getLayoutId = (prefix: string, id: string) => `day-${prefix}-${id}`;
+
+    useEffect(() => {
+      const timer = setTimeout(() => {
+        setIsInitialRender(false);
+      }, 300);
+
+      return () => clearTimeout(timer);
+    }, []);
 
     useEffect(() => {
       if (isExpanded) {
@@ -108,28 +117,40 @@ export const DayEventCard = memo(
           <motion.div
             className="flex flex-col gap-4 w-full"
             initial={false}
-            layoutId={isDragOverlay ? undefined : getLayoutId("card", id)}
+            layoutId={
+              disabledAnimation && isInitialRender
+                ? undefined
+                : getLayoutId("card", id)
+            }
+            transition={
+              isInitialRender
+                ? { duration: 0, layout: { duration: 0 } }
+                : undefined
+            }
           >
             <motion.div
               className="relative w-full h-32 rounded-t-lg overflow-hidden"
               initial={false}
               layoutId={
-                isDragOverlay ? undefined : getLayoutId("image-container", id)
+                disabledAnimation && isInitialRender
+                  ? undefined
+                  : getLayoutId("image-container", id)
               }
             >
-              <Image
+              <img
                 alt={title}
-                className="transition-opacity duration-300 select-none"
+                className="select-none w-full h-full object-cover"
                 draggable={false}
-                fill
-                priority
                 src={imageUrl}
-                style={{ objectFit: "cover", userSelect: "none" }}
               />
               <motion.div
                 className="absolute flex justify-center align-middle top-3 right-3 px-2 py-1 rounded-full bg-gradient-to-r from-indigo-600 to-violet-600"
                 initial={false}
-                layoutId={isDragOverlay ? undefined : getLayoutId("time", id)}
+                layoutId={
+                  disabledAnimation && isInitialRender
+                    ? undefined
+                    : getLayoutId("time", id)
+                }
               >
                 <span className="text-xs font-medium text-white">
                   {eventTime}
@@ -139,20 +160,28 @@ export const DayEventCard = memo(
             <motion.div
               className="flex flex-col p-4"
               initial={false}
-              layoutId={isDragOverlay ? undefined : getLayoutId("content", id)}
+              layoutId={
+                disabledAnimation && isInitialRender
+                  ? undefined
+                  : getLayoutId("content", id)
+              }
             >
               <motion.div
                 className="overflow-hidden"
                 initial={false}
                 layoutId={
-                  isDragOverlay ? undefined : getLayoutId("title-container", id)
+                  disabledAnimation && isInitialRender
+                    ? undefined
+                    : getLayoutId("title-container", id)
                 }
               >
                 <motion.h3
                   className="text-[18px] leading-[22px] font-semibold text-gray-900 w-full line-clamp-1 text-ellipsis select-none"
                   initial={false}
                   layoutId={
-                    isDragOverlay ? undefined : getLayoutId("title", id)
+                    disabledAnimation && isInitialRender
+                      ? undefined
+                      : getLayoutId("title", id)
                   }
                 >
                   {title}
@@ -162,7 +191,7 @@ export const DayEventCard = memo(
                 className="overflow-hidden"
                 initial={false}
                 layoutId={
-                  isDragOverlay
+                  disabledAnimation && isInitialRender
                     ? undefined
                     : getLayoutId("description-container", id)
                 }
@@ -171,7 +200,9 @@ export const DayEventCard = memo(
                   className="mt-2 text-[14px] leading-5 text-gray-600 line-clamp-2 select-none"
                   initial={false}
                   layoutId={
-                    isDragOverlay ? undefined : getLayoutId("description", id)
+                    disabledAnimation && isInitialRender
+                      ? undefined
+                      : getLayoutId("description", id)
                   }
                 >
                   {description}

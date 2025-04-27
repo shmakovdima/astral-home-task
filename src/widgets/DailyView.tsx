@@ -267,10 +267,7 @@ export const DailyView = () => {
         onDayChange={handleDayChange}
         onEdgeChange={handleEdgeChange}
       />
-      <div
-        className="flex flex-col gap-4 min-h-dvh relative pb-safe"
-        ref={ref}
-      >
+      <div className="flex flex-col gap-4 min-h-dvh relative pb-safe" ref={ref}>
         <DayNavigation activeDay={activeDay} setActiveDay={setActiveDay} />
         <div className="flex flex-col gap-4 p-4">
           <DayHeader date={activeDay} />
@@ -283,7 +280,7 @@ export const DailyView = () => {
                 }}
               >
                 <span className="text-sm font-medium text-violet-500">
-                  Drop event here
+                  Drop event to this day
                 </span>
               </div>
             ) : null}
@@ -320,7 +317,7 @@ export const DailyView = () => {
         <DragOverlay dropAnimation={null} modifiers={[]}>
           {activeEvent ? (
             <div className="shadow-lg opacity-50" ref={dragOverlayRef}>
-              <DayEventCard {...activeEvent} isDragOverlay />
+              <DayEventCard {...activeEvent} disabledAnimation />
             </div>
           ) : null}
         </DragOverlay>
