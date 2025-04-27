@@ -7,11 +7,7 @@ type Props = {
   onDrop?: (daysToMove: number) => void;
 };
 
-export const DayDropZone = ({
-  children,
-  onDayChange,
-  onDrop,
-}: Props) => {
+export const DayDropZone = ({ children, onDayChange, onDrop }: Props) => {
   const isDraggingRef = useRef(false);
   const lastDirectionRef = useRef<"left" | "right" | null>(null);
   const scrollIntervalRef = useRef<NodeJS.Timeout | null>(null);

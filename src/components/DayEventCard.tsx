@@ -8,7 +8,7 @@ import { useDraggable } from "@dnd-kit/core";
 
 type Props = Event & {
   isDragOverlay?: boolean;
-}
+};
 
 export const DayEventCard = memo(
   ({
@@ -183,7 +183,7 @@ export const DayEventCard = memo(
 
         <AnimatePresence mode="wait">
           {isExpanded ? (
-            <div className="fixed inset-0 z-[9999] isolate">
+            <div className="fixed inset-0 z-[9999] isolate disable-swipe">
               <motion.div
                 animate={{ opacity: 1 }}
                 className="fixed inset-0 bg-black/40"

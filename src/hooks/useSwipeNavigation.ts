@@ -14,19 +14,34 @@ export const useSwipeNavigation = ({
   isDisabled = false,
 }: SwipeNavigationProps) => {
   const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
   const elementRef = useRef<HTMLDivElement | null>(null);
   const isSwiping = useRef(false);
 
   const resetState = useCallback(() => {
     touchStartX.current = null;
+    touchStartY.current = null;
     isSwiping.current = false;
   }, []);
+
+  const isHorizontalSwipe = (deltaX: number, deltaY: number): boolean => {
+    // Вычисляем угол свайпа в градусах от -180 до 180
+    const angle = (Math.atan2(deltaY, deltaX) * 180) / Math.PI;
+
+    // Проверяем, что угол близок к 0 (свайп вправо) или 180/-180 (свайп влево)
+    const threshold = 30;
+    return (
+      Math.abs(angle) <= threshold ||
+      Math.abs(Math.abs(angle) - 180) <= threshold
+    );
+  };
 
   const handleTouchStart = useCallback(
     (event: TouchEvent) => {
       if (isDisabled) return;
-      if (document.querySelector(".bg-black\\/40")) return;
+      if (document.querySelector(".disable-swipe")) return;
       touchStartX.current = event.touches[0].clientX;
+      touchStartY.current = event.touches[0].clientY;
       isSwiping.current = true;
     },
     [isDisabled],
@@ -34,13 +49,24 @@ export const useSwipeNavigation = ({
 
   const handleTouchMove = useCallback(
     (event: TouchEvent) => {
-      if (isDisabled || !isSwiping.current || !touchStartX.current) return;
-      if (document.querySelector(".bg-black\\/40")) return;
+      if (
+        isDisabled ||
+        !isSwiping.current ||
+        !touchStartX.current ||
+        !touchStartY.current
+      )
+        return;
+      if (document.querySelector(".disable-swipe")) return;
 
       const touchEndX = event.touches[0].clientX;
+      const touchEndY = event.touches[0].clientY;
       const deltaX = touchEndX - touchStartX.current;
+      const deltaY = touchEndY - touchStartY.current;
 
-      if (Math.abs(deltaX) > minSwipeDistance) {
+      if (
+        Math.abs(deltaX) > minSwipeDistance &&
+        isHorizontalSwipe(deltaX, deltaY)
+      ) {
         event.preventDefault();
       }
     },
@@ -49,13 +75,24 @@ export const useSwipeNavigation = ({
 
   const handleTouchEnd = useCallback(
     (event: TouchEvent) => {
-      if (isDisabled || !isSwiping.current || !touchStartX.current) return;
-      if (document.querySelector(".bg-black\\/40")) return;
+      if (
+        isDisabled ||
+        !isSwiping.current ||
+        !touchStartX.current ||
+        !touchStartY.current
+      )
+        return;
+      if (document.querySelector(".disable-swipe")) return;
 
       const touchEndX = event.changedTouches[0].clientX;
+      const touchEndY = event.changedTouches[0].clientY;
       const deltaX = touchEndX - touchStartX.current;
+      const deltaY = touchEndY - touchStartY.current;
 
-      if (Math.abs(deltaX) >= minSwipeDistance) {
+      if (
+        Math.abs(deltaX) >= minSwipeDistance &&
+        isHorizontalSwipe(deltaX, deltaY)
+      ) {
         onSwipe(deltaX > 0 ? "prev" : "next");
       }
 

@@ -10,6 +10,6 @@ const IndexPage = () => (
       <WeeklyView />
     </div>
   </div>
-)
+);
 
 export default IndexPage;
