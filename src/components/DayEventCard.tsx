@@ -162,7 +162,7 @@ export const DayEventCard = memo(
                 }
               >
                 <motion.h3
-                  className="text-[18px] leading-[22px] font-semibold text-gray-900 w-full whitespace-nowrap text-ellipsis select-none"
+                  className="text-[18px] leading-[22px] font-semibold text-gray-900 w-full line-clamp-1 text-ellipsis select-none"
                   layoutId={
                     isDragOverlay ? undefined : getLayoutId("title", id)
                   }

@@ -18,6 +18,7 @@ import {
   useSensor,
   useSensors,
   useDndMonitor,
+  DragEndEvent,
 } from "@dnd-kit/core";
 
 const EDGE_THRESHOLD = 0.2;
@@ -115,6 +116,8 @@ const DragMonitor = ({ onDayChange }: { onDayChange: (direction: "prev" | "next"
 export const DailyView = memo(() => {
   const [activeDay, setActiveDay] = useState(format(new Date(), "yyyy-MM-dd"));
   const [activeEvent, setActiveEvent] = useState<Event | null>(null);
+  const [draggedHeight, setDraggedHeight] = useState<number | null>(null);
+  const dragOverlayRef = useRef<HTMLDivElement>(null);
   const { data: eventsByDate } = useAllEvents();
   const { mutate: updateEventDate } = useUpdateEventDate();
   const lastChangeRef = useRef<number>(0);
@@ -157,6 +160,13 @@ export const DailyView = memo(() => {
     minSwipeDistance: 50,
   });
 
+  const handleDragMove = (event: DragMoveEvent) => {
+    const { active } = event;
+    if (active.rect.current.translated) {
+      setDraggedHeight(active.rect.current.translated.height);
+    }
+  };
+
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
     const draggedEvent = eventsByDate?.[activeDay]?.find(
@@ -165,10 +175,13 @@ export const DailyView = memo(() => {
     if (draggedEvent) {
       setActiveEvent(draggedEvent);
       originalEventDateRef.current = activeDay;
+      if (active.rect.current.initial) {
+        setDraggedHeight(active.rect.current.initial.height);
+      }
     }
   };
 
-  const handleDragEnd = () => {
+  const handleDragEnd = (event: DragEndEvent) => {
     const originalDate = originalEventDateRef.current;
     
     if (activeEvent && originalDate && originalDate !== activeDay) {
@@ -179,6 +192,7 @@ export const DailyView = memo(() => {
     }
     
     setActiveEvent(null);
+    setDraggedHeight(null);
     originalEventDateRef.current = null;
   };
 
@@ -186,10 +200,13 @@ export const DailyView = memo(() => {
   const isCurrentDay = isSameDay(new Date(activeDay), new Date());
   const showDropPlaceholder = activeEvent && originalEventDateRef.current !== activeDay;
 
+  console.log("draggedHeight", draggedHeight);
+
   return (
     <DndContext
       onDragEnd={handleDragEnd}
       onDragStart={handleDragStart}
+      onDragMove={handleDragMove}
       sensors={sensors}
     >
       <DragMonitor onDayChange={handleDayChange} />
@@ -200,7 +217,8 @@ export const DailyView = memo(() => {
           <div className="grid grid-cols-1 gap-4">
             {showDropPlaceholder && (
               <div 
-                className="rounded-lg border-2 border-dashed border-violet-200 bg-violet-50/50 min-h-[226px] flex items-center justify-center"
+                className="rounded-lg border-2 border-dashed border-violet-200 bg-violet-50/50 flex items-center justify-center"
+                style={{ minHeight: draggedHeight ? `${draggedHeight}px` : '226px' }}
               >
                 <span className="text-sm font-medium text-violet-500">
                   Drop event here
@@ -244,7 +262,7 @@ export const DailyView = memo(() => {
       </div>
       <DragOverlay dropAnimation={null} modifiers={[]}>
         {activeEvent ? (
-          <div className="shadow-lg opacity-90">
+          <div ref={dragOverlayRef} className="shadow-lg opacity-90">
             <DayEventCard
               {...activeEvent}
               isDragOverlay
