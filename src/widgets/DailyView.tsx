@@ -5,7 +5,7 @@ import { DayEventCard } from "@/components/DayEventCard";
 import { DayHeader } from "@/components/DayHeader";
 import { DaysNavigation } from "@/components/DaysNavigation";
 import { useAllEvents } from "@/hooks/useEvents";
-// import { useSwipeNavigation } from "@/hooks/useSwipeNavigation";
+import { useSwipeNavigation } from "@/hooks/useSwipeNavigation";
 import { useUpdateEventDate } from "@/hooks/useUpdateEventDate";
 import type { Event } from "@/models";
 import {
@@ -142,7 +142,6 @@ export const DailyView = memo(() => {
     console.log("handleDayChange", direction, activeDay);
     const currentTime = Date.now();
     
-    // Защита от слишком частых обновлений
     if (currentTime - lastChangeRef.current < 100) {
       return;
     }
@@ -156,6 +155,11 @@ export const DailyView = memo(() => {
     
     lastChangeRef.current = currentTime;
   }, []);
+
+  const { ref } = useSwipeNavigation({
+    onSwipe: handleDayChange,
+    minSwipeDistance: 50,
+  });
 
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
@@ -193,7 +197,7 @@ export const DailyView = memo(() => {
       sensors={sensors}
     >
       <DragMonitor onDayChange={handleDayChange} />
-      <div className="flex flex-col gap-4 min-h-[calc(100vh_-_200px)]">
+      <div ref={ref} className="flex flex-col gap-4 min-h-[calc(100vh_-_200px)]">
         <DaysNavigation activeDay={activeDay} setActiveDay={setActiveDay} />
         <div className="flex flex-col gap-4 p-4">
           <DayHeader date={activeDay} />

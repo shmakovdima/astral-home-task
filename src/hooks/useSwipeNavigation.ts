@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from "react";
 
-type SwipeDirection = "left" | "right";
+type SwipeDirection = "prev" | "next";
 
 type SwipeNavigationProps = {
   onSwipe: (direction: SwipeDirection) => void;
@@ -56,7 +56,7 @@ export const useSwipeNavigation = ({
       const deltaX = touchEndX - touchStartX.current;
 
       if (Math.abs(deltaX) >= minSwipeDistance) {
-        onSwipe(deltaX > 0 ? "right" : "left");
+        onSwipe(deltaX > 0 ? "prev" : "next");
       }
 
       resetState();
