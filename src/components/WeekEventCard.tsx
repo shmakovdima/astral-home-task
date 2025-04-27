@@ -191,6 +191,12 @@ export const WeekEventCard = memo(
           }`}
           data-event-id={id}
           onClick={() => !isDragging && setIsExpanded(true)}
+          onContextMenu={(e) => e.preventDefault()}
+          onTouchStart={(e) => {
+            if (isDragging) {
+              e.preventDefault();
+            }
+          }}
           ref={dragRef}
         >
           <div className="absolute inset-0 flex flex-col w-full z-0">

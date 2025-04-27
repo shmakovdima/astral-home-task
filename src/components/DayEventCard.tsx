@@ -175,6 +175,12 @@ export const DayEventCard = memo(
           }`}
           data-event-id={id}
           onClick={() => !isDragging && setIsExpanded(true)}
+          onContextMenu={(e) => e.preventDefault()}
+          onTouchStart={(e) => {
+            if (isDragging) {
+              e.preventDefault();
+            }
+          }}
           ref={dragRef}
         >
           <motion.div

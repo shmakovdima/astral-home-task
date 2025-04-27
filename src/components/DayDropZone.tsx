@@ -201,6 +201,7 @@ export const DayDropZone = ({
   );
 
   const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    e.preventDefault();
     const target = e.target as HTMLElement;
     const eventCard = target.closest(".event-card") as HTMLElement;
     if (!eventCard) return;
@@ -323,6 +324,7 @@ export const DayDropZone = ({
         isOver ? "bg-blue-50" : ""
       }`}
       onClick={(e) => e.stopPropagation()}
+      onContextMenu={(e) => e.preventDefault()}
       onDragLeave={handleDragLeave}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
