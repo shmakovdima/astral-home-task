@@ -12,10 +12,12 @@ import {
   defaultDropAnimationSideEffects,
   DndContext,
   DragEndEvent,
+  DragMoveEvent,
   DragOverlay,
   DragStartEvent,
   MouseSensor,
   TouchSensor,
+  UniqueIdentifier,
   useSensor,
   useSensors,
   useDndMonitor,
@@ -27,73 +29,101 @@ const HOLD_DURATION = 300;
 const DragMonitor = ({ onDayChange }: { onDayChange: (direction: "prev" | "next") => void }) => {
   const edgeTimeoutRef = useRef<number | null>(null);
   const lastDirectionRef = useRef<"prev" | "next" | null>(null);
-  const hasChangedDayRef = useRef(false);
   const dragStartTimeRef = useRef(0);
+  const edgeStartTimeRef = useRef(0);
+  const rafRef = useRef<number | null>(null);
+  const lastDeltaRef = useRef({ x: 0 });
+
+  const clearTimers = () => {
+    if (edgeTimeoutRef.current) {
+      window.clearTimeout(edgeTimeoutRef.current);
+      edgeTimeoutRef.current = null;
+    }
+    if (rafRef.current) {
+      window.cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    }
+  };
+
+  const checkPosition = () => {
+    if (!onDayChange) return;
+
+    const screenWidth = window.innerWidth;
+    const threshold = screenWidth * EDGE_THRESHOLD;
+    let newDirection: "prev" | "next" | null = null;
+
+    const { x } = lastDeltaRef.current;
+
+    console.log("x", x);
+
+    if (x > threshold) {
+      newDirection = "next";
+    } else if (x < -threshold) {
+      newDirection = "prev";
+    }
+
+    if (newDirection !== lastDirectionRef.current || !newDirection) {
+      if (edgeTimeoutRef.current) {
+        window.clearTimeout(edgeTimeoutRef.current);
+        edgeTimeoutRef.current = null;
+      }
+      edgeStartTimeRef.current = 0;
+    }
+
+    if (newDirection && !edgeTimeoutRef.current) {
+      if (edgeStartTimeRef.current === 0) {
+        edgeStartTimeRef.current = Date.now();
+      }
+
+      const holdStartTime = Date.now();
+      const edgeHoldDuration = holdStartTime - edgeStartTimeRef.current;
+      const daysToSkip = Math.floor(edgeHoldDuration / 1000);
+
+      if (edgeHoldDuration > HOLD_DURATION) {
+        edgeTimeoutRef.current = window.setTimeout(() => {
+          for (let i = 0; i < Math.max(1, daysToSkip); i++) {
+            onDayChange(newDirection!);
+          }
+          edgeTimeoutRef.current = null;
+          // Не сбрасываем edgeStartTimeRef и lastDeltaRef
+        }, 100);
+      }
+    }
+
+    lastDirectionRef.current = newDirection;
+    rafRef.current = requestAnimationFrame(checkPosition);
+  };
 
   useDndMonitor({
     onDragStart: () => {
       dragStartTimeRef.current = Date.now();
-      hasChangedDayRef.current = false;
+      edgeStartTimeRef.current = 0;
+      lastDeltaRef.current = { x: 0 };
+      clearTimers();
+      rafRef.current = requestAnimationFrame(checkPosition);
     },
-    onDragMove: (event) => {
-      if (!onDayChange || hasChangedDayRef.current) return;
-
-      const { delta } = event;
-      const screenWidth = window.innerWidth;
-      const threshold = screenWidth * EDGE_THRESHOLD;
-      let newDirection: "prev" | "next" | null = null;
-
-      console.log("delta", delta);
-
-      if (delta.x > threshold) {
-        newDirection = "next";
-      } else if (delta.x < -threshold) {
-        newDirection = "prev";
-      }
-
-      if (newDirection !== lastDirectionRef.current || !newDirection) {
-        if (edgeTimeoutRef.current) {
-          window.clearTimeout(edgeTimeoutRef.current);
-          edgeTimeoutRef.current = null;
-        }
-        hasChangedDayRef.current = false;
-      }
-
-      if (newDirection && !edgeTimeoutRef.current && !hasChangedDayRef.current) {
-        const holdStartTime = Date.now();
-        const pointerHoldDuration = holdStartTime - dragStartTimeRef.current;
-
-        if (pointerHoldDuration > HOLD_DURATION) {
-          edgeTimeoutRef.current = window.setTimeout(() => {
-            onDayChange(newDirection!);
-            hasChangedDayRef.current = true;
-
-            setTimeout(() => {
-              hasChangedDayRef.current = false;
-            }, 300);
-          }, 100);
-        }
-      }
-
-      lastDirectionRef.current = newDirection;
+    onDragMove: (event: DragMoveEvent) => {
+      lastDeltaRef.current = event.delta;
     },
     onDragEnd: () => {
-      if (edgeTimeoutRef.current) {
-        window.clearTimeout(edgeTimeoutRef.current);
-        edgeTimeoutRef.current = null;
-      }
+      clearTimers();
       lastDirectionRef.current = null;
-      hasChangedDayRef.current = false;
+      edgeStartTimeRef.current = 0;
+      lastDeltaRef.current = { x: 0 };
     },
     onDragCancel: () => {
-      if (edgeTimeoutRef.current) {
-        window.clearTimeout(edgeTimeoutRef.current);
-        edgeTimeoutRef.current = null;
-      }
+      clearTimers();
       lastDirectionRef.current = null;
-      hasChangedDayRef.current = false;
+      edgeStartTimeRef.current = 0;
+      lastDeltaRef.current = { x: 0 };
     }
   });
+
+  useEffect(() => {
+    return () => {
+      clearTimers();
+    };
+  }, []);
 
   return null;
 };
