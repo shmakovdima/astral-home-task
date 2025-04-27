@@ -78,7 +78,7 @@ export const WeekHeader = ({
         </svg>
       </motion.button>
 
-      <div className="text-center w-48 overflow-hidden">
+      <div className="text-center w-68 overflow-hidden">
         <AnimatePresence custom={direction} initial={false} mode="wait">
           <motion.div
             animate="center"
