@@ -1,9 +1,9 @@
 import { memo, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
-import { useDraggable } from "@dnd-kit/core";
 
 import { type Event } from "@/models";
+import { useDraggable } from "@dnd-kit/core";
 
 const EDGE_THRESHOLD = 0.2; // 20% of screen width
 const HOLD_DURATION = 1500; // 1.5 seconds
@@ -23,9 +23,7 @@ const getScrollbarWidth = () => {
   return scrollbarWidth;
 };
 
-const getLayoutId = (prefix: string, id: string) => {
-  return `day-${prefix}-${id}`;
-};
+const getLayoutId = (prefix: string, id: string) => `day-${prefix}-${id}`;
 
 export const DayEventCard = memo(
   ({
@@ -37,27 +35,26 @@ export const DayEventCard = memo(
     location,
     duration,
     onDayChange,
-  }: Event & { onDayChange?: (direction: 'prev' | 'next') => void }) => {
+    isDragOverlay = false,
+  }: Event & {
+    onDayChange?: (direction: "prev" | "next") => void;
+    isDragOverlay?: boolean;
+  }) => {
     const [isLoading, setIsLoading] = useState(true);
     const [isExpanded, setIsExpanded] = useState(false);
     const cardRef = useRef<HTMLDivElement>(null);
     const dragStartTimeRef = useRef(Date.now());
     const wasDragged = useRef(false);
     const edgeTimeoutRef = useRef<number | null>(null);
-    const lastDirectionRef = useRef<'prev' | 'next' | null>(null);
+    const lastDirectionRef = useRef<"prev" | "next" | null>(null);
     const pointerStartTimeRef = useRef(0);
     const pointerStartPositionRef = useRef({ x: 0, y: 0 });
 
-    const {
-      attributes,
-      listeners,
-      setNodeRef,
-      transform,
-      isDragging,
-    } = useDraggable({
-      id: `draggable-${id}`,
-      data: { id },
-    });
+    const { attributes, listeners, setNodeRef, transform, isDragging } =
+      useDraggable({
+        id: `draggable-${id}`,
+        data: { id },
+      });
 
     useEffect(() => {
       const handleDragMove = () => {
@@ -65,12 +62,12 @@ export const DayEventCard = memo(
 
         const screenWidth = window.innerWidth;
         const threshold = screenWidth * EDGE_THRESHOLD;
-        let newDirection: 'prev' | 'next' | null = null;
+        let newDirection: "prev" | "next" | null = null;
 
         if (transform.x > threshold) {
-          newDirection = 'prev';
+          newDirection = "prev";
         } else if (transform.x < -threshold) {
-          newDirection = 'next';
+          newDirection = "next";
         }
 
         // Clear timeout if direction changed or we're not at an edge
@@ -108,7 +105,9 @@ export const DayEventCard = memo(
           clearTimeout(edgeTimeoutRef.current);
           edgeTimeoutRef.current = null;
         }
+
         lastDirectionRef.current = null;
+
         setTimeout(() => {
           wasDragged.current = false;
         }, 0);
@@ -125,12 +124,12 @@ export const DayEventCard = memo(
     const handlePointerUp = (e: React.PointerEvent) => {
       const pointerUpTime = Date.now();
       const pointerDuration = pointerUpTime - pointerStartTimeRef.current;
-      
+
       const dx = Math.abs(e.clientX - pointerStartPositionRef.current.x);
       const dy = Math.abs(e.clientY - pointerStartPositionRef.current.y);
       const distance = Math.sqrt(dx * dx + dy * dy);
 
-      console.log('Duration:', pointerDuration, 'Distance:', distance);
+      console.log("Duration:", pointerDuration, "Distance:", distance);
 
       if (pointerDuration < 200 && distance < 5) {
         setIsExpanded(true);
@@ -201,25 +200,23 @@ export const DayEventCard = memo(
     return (
       <div className="relative">
         <div
-          ref={setNodeRef}
-          className={`rounded-lg shadow-sm hover:shadow-md transition-all bg-white event-card select-none cursor-pointer ${isDragging ? 'opacity-50' : ''}`}
+          className="rounded-lg shadow-sm hover:shadow-md transition-all bg-white event-card select-none cursor-pointer"
           data-event-id={id}
-          style={{
-            transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
-            transition: !isDragging ? 'transform 0.3s ease-out' : undefined,
-          }}
           onPointerDown={handlePointerDown}
           onPointerUp={handlePointerUp}
+          ref={setNodeRef}
           {...attributes}
           {...listeners}
         >
           <motion.div
             className="flex flex-col gap-4 w-full"
-            layoutId={getLayoutId("card", id)}
+            layoutId={isDragOverlay ? undefined : getLayoutId("card", id)}
           >
             <motion.div
               className="relative w-full h-32 rounded-t-lg overflow-hidden"
-              layoutId={getLayoutId("image-container", id)}
+              layoutId={
+                isDragOverlay ? undefined : getLayoutId("image-container", id)
+              }
             >
               <Image
                 alt={title}
@@ -235,7 +232,7 @@ export const DayEventCard = memo(
               />
               <motion.div
                 className="absolute flex justify-center align-middle top-3 right-3 px-2 py-1 rounded-full bg-gradient-to-r from-indigo-600 to-violet-600"
-                layoutId={getLayoutId("time", id)}
+                layoutId={isDragOverlay ? undefined : getLayoutId("time", id)}
               >
                 <span className="text-xs font-medium text-white">
                   {eventTime}
@@ -244,26 +241,36 @@ export const DayEventCard = memo(
             </motion.div>
             <motion.div
               className="flex flex-col p-4"
-              layoutId={getLayoutId("content", id)}
+              layoutId={isDragOverlay ? undefined : getLayoutId("content", id)}
             >
               <motion.div
                 className="overflow-hidden"
-                layoutId={getLayoutId("title-container", id)}
+                layoutId={
+                  isDragOverlay ? undefined : getLayoutId("title-container", id)
+                }
               >
                 <motion.h3
                   className="text-[18px] leading-[22px] font-semibold text-gray-900 w-full whitespace-nowrap text-ellipsis select-none"
-                  layoutId={getLayoutId("title", id)}
+                  layoutId={
+                    isDragOverlay ? undefined : getLayoutId("title", id)
+                  }
                 >
                   {title}
                 </motion.h3>
               </motion.div>
               <motion.div
                 className="overflow-hidden"
-                layoutId={getLayoutId("description-container", id)}
+                layoutId={
+                  isDragOverlay
+                    ? undefined
+                    : getLayoutId("description-container", id)
+                }
               >
                 <motion.p
                   className="mt-2 text-[14px] leading-5 text-gray-600 line-clamp-2 select-none"
-                  layoutId={getLayoutId("description", id)}
+                  layoutId={
+                    isDragOverlay ? undefined : getLayoutId("description", id)
+                  }
                 >
                   {description}
                 </motion.p>

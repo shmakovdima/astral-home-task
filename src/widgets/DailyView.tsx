@@ -1,14 +1,5 @@
 import { useState } from "react";
 import { addDays, format, isSameDay } from "date-fns";
-import { 
-  DndContext, 
-  DragOverlay,
-  MouseSensor, 
-  TouchSensor, 
-  useSensor, 
-  useSensors,
-  defaultDropAnimationSideEffects,
-} from "@dnd-kit/core";
 
 import { DayEventCard } from "@/components/DayEventCard";
 import { DayHeader } from "@/components/DayHeader";
@@ -17,6 +8,15 @@ import { useAllEvents } from "@/hooks/useEvents";
 // import { useSwipeNavigation } from "@/hooks/useSwipeNavigation";
 import { useUpdateEventDate } from "@/hooks/useUpdateEventDate";
 import type { Event } from "@/models";
+import {
+  defaultDropAnimationSideEffects,
+  DndContext,
+  DragOverlay,
+  MouseSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
 
 export const DailyView = () => {
   const [activeDay, setActiveDay] = useState(format(new Date(), "yyyy-MM-dd"));
@@ -39,35 +39,35 @@ export const DailyView = () => {
 
   const sensors = useSensors(mouseSensor, touchSensor);
 
-  /* 
-  const handlePrevDay = () => {
-    const baseDate = new Date(activeDay);
-    const newDate = addDays(baseDate, -1);
-    const formattedDate = format(newDate, "yyyy-MM-dd");
-    setActiveDay(formattedDate);
-  };
+  /*
+   *const handlePrevDay = () => {
+   *  const baseDate = new Date(activeDay);
+   *  const newDate = addDays(baseDate, -1);
+   *  const formattedDate = format(newDate, "yyyy-MM-dd");
+   *  setActiveDay(formattedDate);
+   *};
+   *
+   *const handleNextDay = () => {
+   *  const baseDate = new Date(activeDay);
+   *  const newDate = addDays(baseDate, 1);
+   *  const formattedDate = format(newDate, "yyyy-MM-dd");
+   *  setActiveDay(formattedDate);
+   *};
+   *
+   *const { ref } = useSwipeNavigation({
+   *  onSwipe: (direction) => {
+   *    if (direction === "right") {
+   *      handlePrevDay();
+   *    } else {
+   *      handleNextDay();
+   *    }
+   *  },
+   *  minSwipeDistance: 50,
+   *});
+   */
 
-  const handleNextDay = () => {
-    const baseDate = new Date(activeDay);
-    const newDate = addDays(baseDate, 1);
-    const formattedDate = format(newDate, "yyyy-MM-dd");
-    setActiveDay(formattedDate);
-  };
-
-  const { ref } = useSwipeNavigation({
-    onSwipe: (direction) => {
-      if (direction === "right") {
-        handlePrevDay();
-      } else {
-        handleNextDay();
-      }
-    },
-    minSwipeDistance: 50,
-  });
-  */
-
-  const handleDayChange = (direction: 'prev' | 'next') => {
-    const daysToMove = direction === 'prev' ? -1 : 1;
+  const handleDayChange = (direction: "prev" | "next") => {
+    const daysToMove = direction === "prev" ? -1 : 1;
     const baseDate = new Date(activeDay);
     const newDate = addDays(baseDate, daysToMove);
     const formattedDate = format(newDate, "yyyy-MM-dd");
@@ -76,7 +76,11 @@ export const DailyView = () => {
 
   const handleDragStart = (event: any) => {
     const { active } = event;
-    const draggedEvent = dayEvents.find((e) => e.id === active.data.current?.id);
+
+    const draggedEvent = dayEvents.find(
+      (e) => e.id === active.data.current?.id,
+    );
+
     if (draggedEvent) {
       setActiveEvent(draggedEvent);
     }
@@ -90,11 +94,10 @@ export const DailyView = () => {
   const isCurrentDay = isSameDay(new Date(activeDay), new Date());
 
   return (
-    <DndContext 
-      sensors={sensors}
-      onDragStart={handleDragStart}
+    <DndContext
       onDragEnd={handleDragEnd}
-      modifiers={[]}
+      onDragStart={handleDragStart}
+      sensors={sensors}
     >
       <div className="flex flex-col gap-4 min-h-[calc(100vh_-_200px)]">
         <DaysNavigation activeDay={activeDay} setActiveDay={setActiveDay} />
@@ -136,20 +139,15 @@ export const DailyView = () => {
           </div>
         </div>
       </div>
-      <DragOverlay dropAnimation={{
-        sideEffects: defaultDropAnimationSideEffects({
-          styles: {
-            active: {
-              opacity: '0.5'
-            }
-          }
-        })
-      }}>
+      <DragOverlay dropAnimation={null} modifiers={[]}>
         {activeEvent ? (
-          <DayEventCard
-            {...activeEvent}
-            onDayChange={handleDayChange}
-          />
+          <div className="shadow-lg opacity-50">
+            <DayEventCard
+              {...activeEvent}
+              isDragOverlay
+              onDayChange={handleDayChange}
+            />
+          </div>
         ) : null}
       </DragOverlay>
     </DndContext>
