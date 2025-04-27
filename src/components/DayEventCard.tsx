@@ -204,7 +204,7 @@ export const DayEventCard = memo(
                   layoutId={getLayoutId("card", id)}
                 >
                   <motion.div
-                    className="relative w-full h-[30vh]"
+                    className="relative w-full h-[30dvh]"
                     layoutId={getLayoutId("image-container", id)}
                   >
                     <Image

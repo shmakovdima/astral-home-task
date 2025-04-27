@@ -23,7 +23,7 @@ html,
 body {
   overscroll-behavior: none;
   touch-action: pan-y pinch-zoom;
-  min-height: 100vh;
+  min-height: 100dvh;
 }
 
 body {

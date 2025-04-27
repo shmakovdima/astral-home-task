@@ -25,15 +25,9 @@ export const useSwipeNavigation = ({
   }, []);
 
   const isHorizontalSwipe = (deltaX: number, deltaY: number): boolean => {
-    // Вычисляем угол свайпа в градусах от -180 до 180
-    const angle = (Math.atan2(deltaY, deltaX) * 180) / Math.PI;
-
-    // Проверяем, что угол близок к 0 (свайп вправо) или 180/-180 (свайп влево)
-    const threshold = 30;
-    return (
-      Math.abs(angle) <= threshold ||
-      Math.abs(Math.abs(angle) - 180) <= threshold
-    );
+    // Проверяем, что вертикальное смещение не превышает 40% от горизонтального
+    const verticalToHorizontalRatio = Math.abs(deltaY) / Math.abs(deltaX);
+    return verticalToHorizontalRatio <= 0.4;
   };
 
   const handleTouchStart = useCallback(

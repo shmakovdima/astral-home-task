@@ -284,7 +284,7 @@ export const WeeklyView = () => {
                     !isLastDay ? "border-r border-gray-200" : "",
                   )}
                   key={format(date, "yyyy-MM-dd")}
-                  style={{ minHeight: "calc(100vh - 180px)" }}
+                  style={{ minHeight: "calc(100dvh - 180px)" }}
                 >
                   {isTargetDay && !isNearRightEdge && !isNearLeftEdge ? (
                     <div
@@ -339,7 +339,7 @@ export const WeeklyView = () => {
         </WeekDropZone>
       </div>
       {isNearLeftEdge ? (
-        <div className="fixed left-0 top-0 w-[100px] bg-gradient-to-r h-screen min-h-[calc(100vh_-_180px)] from-blue-500/20 to-transparent z-[100] flex items-end pb-[60px] justify-start">
+        <div className="fixed left-0 top-0 w-[100px] bg-gradient-to-r h-screen min-h-[calc(100dvh_-_180px)] from-blue-500/20 to-transparent z-[100] flex items-end pb-[60px] justify-start">
           <div className="ml-4 bg-blue-500 rounded-full p-2 text-white">
             <svg
               className="w-6 h-6"
@@ -359,7 +359,7 @@ export const WeeklyView = () => {
       ) : null}
 
       {isNearRightEdge ? (
-        <div className="fixed right-0 top-0 w-[100px] bg-gradient-to-l min-h-[calc(100vh_-_180px)] h-screen from-blue-500/20 to-transparent z-[100] flex items-end pb-[60px] justify-end">
+        <div className="fixed right-0 top-0 w-[100px] bg-gradient-to-l min-h-[calc(100dvh_-_180px)] h-screen from-blue-500/20 to-transparent z-[100] flex items-end pb-[60px] justify-end">
           <div className="mr-4 bg-blue-500 rounded-full p-2 text-white">
             <svg
               className="w-6 h-6"
