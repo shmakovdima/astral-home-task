@@ -179,23 +179,24 @@ export const WeekEventCard = memo(
             <div className="relative w-full h-32 rounded-t-lg overflow-hidden">
               <img
                 alt={title}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover select-none"
+                draggable="false"
                 src={imageUrl}
               />
               <div className="absolute flex justify-center align-middle top-3 right-3 px-2 py-1 rounded-full bg-gradient-to-r from-indigo-600 to-violet-600">
-                <span className="text-xs font-medium text-white">
+                <span className="text-xs font-medium text-white  select-none">
                   {eventTime}
                 </span>
               </div>
             </div>
             <div className="flex flex-col p-4">
               <div className="overflow-hidden">
-                <h3 className="text-[18px] break-all leading-[22px] font-semibold line-clamp-1 text-gray-900 w-full text-ellipsis">
+                <h3 className="text-[18px] break-all  select-none leading-[22px] font-semibold line-clamp-1 text-gray-900 w-full text-ellipsis">
                   {title}
                 </h3>
               </div>
               <div className="overflow-hidden">
-                <p className="mt-2 text-[14px] leading-5 text-gray-600 line-clamp-2">
+                <p className="mt-2 text-[14px]  select-none leading-5 text-gray-600 line-clamp-2">
                   {description}
                 </p>
               </div>
@@ -213,6 +214,8 @@ export const WeekEventCard = memo(
             >
               <Image
                 alt={title}
+                className="select-none"
+                draggable="false"
                 fill
                 priority
                 src={imageUrl}
@@ -295,7 +298,7 @@ export const WeekEventCard = memo(
                     >
                       <span className="text-xs font-medium text-white">
                         {eventTime}
-                      </span>
+                      </span>{" "}
                     </motion.div>
                     <motion.button
                       animate={{ opacity: 1 }}

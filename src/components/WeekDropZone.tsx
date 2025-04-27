@@ -1,20 +1,24 @@
 import { useCallback, useEffect, useRef } from "react";
 import { useDrop } from "react-dnd";
 
+const WEEK_CHANGE_DELAY = 1500;
+
 type Props = {
   children: React.ReactNode;
   onDayChange: (daysToMove: number) => void;
   onDrop: (daysToMove: number) => void;
+  onEdgeChange: (isLeft: boolean, isRight: boolean) => void;
   onWeekChange?: (direction: "prev" | "next") => void;
-  onEdgeChange?: (isLeft: boolean, isRight: boolean) => void;
+  onWeekChangeProgress?: (progress: number) => void;
 };
 
 export const WeekDropZone = ({
   children,
   onDayChange,
   onDrop,
-  onWeekChange,
   onEdgeChange,
+  onWeekChange,
+  onWeekChangeProgress,
 }: Props) => {
   const startX = useRef<number | null>(null);
   const daysToMove = useRef<number>(0);
@@ -25,9 +29,37 @@ export const WeekDropZone = ({
 
   const handleEdgeChange = useCallback(
     (left: boolean, right: boolean) => {
-      onEdgeChange?.(left, right);
+      onEdgeChange(left, right);
     },
     [onEdgeChange],
+  );
+
+  const startWeekChangeTimer = useCallback(
+    (direction: "prev" | "next", clientX: number) => {
+      if (weekChangeTimerRef.current) return;
+
+      const isInLeftEdge = clientX < edgeThreshold;
+      const isInRightEdge = clientX > window.innerWidth - edgeThreshold - 1;
+
+      weekChangeTimerRef.current = setTimeout(() => {
+        if (onWeekChange) {
+          onWeekChange(direction);
+          weekChangeRef.current = direction;
+          startX.current = clientX;
+        }
+
+        weekChangeTimerRef.current = null;
+
+        // Проверяем, остаемся ли мы в edge-зоне
+        if (
+          (direction === "prev" && isInLeftEdge) ||
+          (direction === "next" && isInRightEdge)
+        ) {
+          startWeekChangeTimer(direction, clientX);
+        }
+      }, WEEK_CHANGE_DELAY);
+    },
+    [onWeekChange],
   );
 
   useEffect(() => {
@@ -38,7 +70,7 @@ export const WeekDropZone = ({
       handleEdgeChange(false, false);
       hasDroppedRef.current = false;
       onDayChange(0);
-      onEdgeChange?.(false, false);
+      onEdgeChange(false, false);
     };
 
     document.addEventListener("dragend", handleDragEnd);
@@ -48,14 +80,49 @@ export const WeekDropZone = ({
     };
   }, [handleEdgeChange, onDayChange, onEdgeChange]);
 
-  useEffect(
-    () => () => {
-      if (weekChangeTimerRef.current) {
-        clearTimeout(weekChangeTimerRef.current);
+  useEffect(() => {
+    let progressInterval: NodeJS.Timeout | null = null;
+    let startTime = 0;
+
+    const updateProgress = () => {
+      if (!startTime) return;
+
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(1, elapsed / WEEK_CHANGE_DELAY);
+      onWeekChangeProgress?.(progress);
+
+      if (progress < 1) {
+        progressInterval = setTimeout(updateProgress, 16);
       }
-    },
-    [],
-  );
+    };
+
+    const startProgressTimer = () => {
+      startTime = Date.now();
+      updateProgress();
+    };
+
+    const stopProgressTimer = () => {
+      if (progressInterval) {
+        clearTimeout(progressInterval);
+        progressInterval = null;
+      }
+
+      startTime = 0;
+      onWeekChangeProgress?.(0);
+    };
+
+    if (weekChangeTimerRef.current) {
+      startProgressTimer();
+    } else {
+      stopProgressTimer();
+    }
+
+    return () => {
+      if (progressInterval) {
+        clearTimeout(progressInterval);
+      }
+    };
+  }, [onWeekChangeProgress, weekChangeTimerRef.current]);
 
   const [{ isOver }, drop] = useDrop(
     () => ({
@@ -64,6 +131,12 @@ export const WeekDropZone = ({
         if (!monitor.isOver()) {
           hasDroppedRef.current = false;
           handleEdgeChange(false, false);
+
+          if (weekChangeTimerRef.current) {
+            clearTimeout(weekChangeTimerRef.current);
+            weekChangeTimerRef.current = null;
+          }
+
           return;
         }
 
@@ -86,24 +159,10 @@ export const WeekDropZone = ({
 
         handleEdgeChange(isLeftEdge, isRightEdge);
 
-        if (isLeftEdge && onWeekChange) {
-          if (!weekChangeTimerRef.current) {
-            weekChangeTimerRef.current = setTimeout(() => {
-              onWeekChange("prev");
-              weekChangeRef.current = "prev";
-              startX.current = clientOffset.x;
-              weekChangeTimerRef.current = null;
-            }, 500);
-          }
-        } else if (isRightEdge && onWeekChange) {
-          if (!weekChangeTimerRef.current) {
-            weekChangeTimerRef.current = setTimeout(() => {
-              onWeekChange("next");
-              weekChangeRef.current = "next";
-              startX.current = clientOffset.x;
-              weekChangeTimerRef.current = null;
-            }, 500);
-          }
+        if (isLeftEdge) {
+          startWeekChangeTimer("prev", clientOffset.x);
+        } else if (isRightEdge) {
+          startWeekChangeTimer("next", clientOffset.x);
         } else if (weekChangeTimerRef.current) {
           clearTimeout(weekChangeTimerRef.current);
           weekChangeTimerRef.current = null;

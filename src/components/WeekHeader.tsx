@@ -88,8 +88,9 @@ export const WeekHeader = ({
             key={weekStart.toString()}
             transition={{
               type: "spring",
-              stiffness: 300,
-              damping: 30,
+              stiffness: 500,
+              damping: 45,
+              mass: 0.8,
             }}
             variants={variants}
           >

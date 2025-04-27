@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import type { AppProps } from "next/app";
 import { Roboto } from "next/font/google";
 
-import { useReloadOnResize } from "@/hooks/useReloadOnResize";
 import { DnDProvider } from "@/providers/DnDProvider";
 import { ReactQueryProvider } from "@/providers/ReactQueryProvider";
 
@@ -16,7 +15,6 @@ const roboto = Roboto({
 
 const MyApp = ({ Component, pageProps }: AppProps) => {
   const [isReady, setIsReady] = useState(false);
-  useReloadOnResize();
 
   useEffect(() => {
     if (typeof window !== "undefined") {

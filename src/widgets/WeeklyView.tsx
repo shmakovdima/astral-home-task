@@ -26,6 +26,8 @@ export const WeeklyView = () => {
   const [targetDayIndex, setTargetDayIndex] = useState<number | null>(null);
   const [isNearLeftEdge, setIsNearLeftEdge] = useState(false);
   const [isNearRightEdge, setIsNearRightEdge] = useState(false);
+  const [edgeProgress, setEdgeProgress] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
 
   const [draggedCardHeight, setDraggedCardHeight] = useState<number | null>(
     null,
@@ -34,6 +36,8 @@ export const WeeklyView = () => {
   const [weekOffset, setWeekOffset] = useState(0);
   const originalEventDateRef = useRef<string | null>(null);
   const { mutate: updateEventDate } = useUpdateEventDate();
+
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
@@ -44,6 +48,46 @@ export const WeeklyView = () => {
 
     setCurrentWeek(weekDates);
   }, [currentDate]);
+
+  const handleScroll = useCallback(() => {
+    if (!scrollContainerRef.current || isDragging) return;
+
+    const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
+    const rightEdgeThreshold = 50;
+    const leftEdgeThreshold = 50;
+
+    if (scrollLeft < leftEdgeThreshold) {
+      setEdgeProgress(1 - scrollLeft / leftEdgeThreshold);
+      setIsNearLeftEdge(true);
+      setIsNearRightEdge(false);
+    } else if (scrollWidth - (scrollLeft + clientWidth) < rightEdgeThreshold) {
+      setEdgeProgress(
+        1 - (scrollWidth - (scrollLeft + clientWidth)) / rightEdgeThreshold,
+      );
+
+      setIsNearRightEdge(true);
+      setIsNearLeftEdge(false);
+    } else {
+      setIsNearLeftEdge(false);
+      setIsNearRightEdge(false);
+      setEdgeProgress(0);
+    }
+  }, [isDragging]);
+
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    container.addEventListener("scroll", handleScroll);
+
+    return () => {
+      container.removeEventListener("scroll", handleScroll);
+
+      if (!isDragging) {
+        setEdgeProgress(0);
+      }
+    };
+  }, [handleScroll, isDragging]);
 
   const handlePrevWeek = () => {
     setCurrentDate((prev) => addWeeks(prev, -1));
@@ -80,6 +124,14 @@ export const WeeklyView = () => {
   const handleEdgeChange = useCallback((isLeft: boolean, isRight: boolean) => {
     setIsNearLeftEdge(isLeft);
     setIsNearRightEdge(isRight);
+
+    if (!isLeft && !isRight) {
+      setEdgeProgress(0);
+    }
+  }, []);
+
+  const handleWeekChangeProgress = useCallback((progress: number) => {
+    setEdgeProgress(progress);
   }, []);
 
   const handleDayChange = (daysToMove: number) => {
@@ -256,124 +308,212 @@ export const WeeklyView = () => {
       />
 
       <div className="flex-1 overflow-hidden px-6 relative">
-        <WeekDropZone
-          onDayChange={handleDayChange}
-          onDrop={(daysToMove: number) => {
-            if (draggedEventId) {
-              handleEventDrop(draggedEventId, daysToMove);
-            }
-          }}
-          onEdgeChange={handleEdgeChange}
-          onWeekChange={handleWeekChange}
-        >
-          <div className="grid grid-cols-7 gap-0 overflow-hidden flex-1 h-full">
-            {currentWeek.map((date, index) => {
-              const events = getEventsForDay(date);
-              const isLastDay = index === currentWeek.length - 1;
-              const dateString = format(date, "yyyy-MM-dd");
-              const isTargetDay = targetDayIndex === index && isDayChanged;
-              const hasEvents = events.length > 0;
+        <div className="h-full overflow-x-auto" ref={scrollContainerRef}>
+          <WeekDropZone
+            onDayChange={handleDayChange}
+            onDrop={(daysToMove: number) => {
+              if (draggedEventId) {
+                handleEventDrop(draggedEventId, daysToMove);
+              }
 
-              return (
-                <div
-                  className={cnTwMerge(
-                    "flex px-2 pt-2 gap-2 flex-col h-full transition-colors duration-200",
-                    hasEvents ? "pb-6" : "pb-2",
-                    isToday(date) ? "bg-blue-50" : "",
-                    isTargetDay ? "bg-blue-100/50" : "",
-                    !isLastDay ? "border-r border-gray-200" : "",
-                  )}
-                  key={format(date, "yyyy-MM-dd")}
-                  style={{ minHeight: "calc(100dvh - 180px)" }}
-                >
-                  {isTargetDay && !isNearRightEdge && !isNearLeftEdge ? (
-                    <div
-                      className="text-center text-gray-500 border-2 border-dashed border-blue-300 rounded-lg bg-blue-50/70 mb-2 flex items-center justify-center"
-                      style={{
-                        height: draggedCardHeight
-                          ? `${draggedCardHeight}px`
-                          : "auto",
-                        minHeight: "140px",
-                        padding: "0.5rem",
-                      }}
-                    >
-                      <div className="flex flex-col items-center gap-2">
-                        <svg
-                          className="w-6 h-6 text-blue-500"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            d="M19 14l-7 7m0 0l-7-7m7 7V3"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                          />
-                        </svg>
-                        <span className="text-xs font-medium text-blue-600">
-                          Drop event to this day
-                        </span>
+              setIsDragging(false);
+            }}
+            onEdgeChange={handleEdgeChange}
+            onWeekChange={handleWeekChange}
+            onWeekChangeProgress={handleWeekChangeProgress}
+          >
+            <div className="grid grid-cols-7 gap-0 overflow-hidden flex-1 h-full">
+              {currentWeek.map((date, index) => {
+                const events = getEventsForDay(date);
+                const isLastDay = index === currentWeek.length - 1;
+                const dateString = format(date, "yyyy-MM-dd");
+                const isTargetDay = targetDayIndex === index && isDayChanged;
+                const hasEvents = events.length > 0;
+
+                return (
+                  <div
+                    className={cnTwMerge(
+                      "flex px-2 pt-2 gap-2 flex-col h-full transition-colors duration-200",
+                      hasEvents ? "pb-6" : "pb-2",
+                      isToday(date) ? "bg-blue-50" : "",
+                      isTargetDay ? "bg-blue-100/50" : "",
+                      !isLastDay ? "border-r border-gray-200" : "",
+                    )}
+                    key={format(date, "yyyy-MM-dd")}
+                    style={{ minHeight: "calc(100dvh - 180px)" }}
+                  >
+                    {isTargetDay && !isNearRightEdge && !isNearLeftEdge ? (
+                      <div
+                        className="text-center text-gray-500 border-2 border-dashed border-blue-300 rounded-lg bg-blue-50/70 mb-2 flex items-center justify-center"
+                        style={{
+                          height: draggedCardHeight
+                            ? `${draggedCardHeight}px`
+                            : "auto",
+                          minHeight: "140px",
+                          padding: "0.5rem",
+                        }}
+                      >
+                        <div className="flex flex-col items-center gap-2">
+                          <svg
+                            className="w-6 h-6 text-blue-500"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              d="M19 14l-7 7m0 0l-7-7m7 7V3"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                            />
+                          </svg>
+                          <span className="text-xs font-medium text-blue-600">
+                            Drop event to this day
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                  ) : null}
+                    ) : null}
 
-                  {events.map((event) => (
-                    <WeekEventCard
-                      {...event}
-                      key={event.id}
-                      onDragEnd={(daysToMove) =>
-                        handleEventDrop(event.id, daysToMove)
-                      }
-                      onDragStart={(height) => {
-                        setDraggedEventId(event.id);
-                        setStartDay(dateString);
-                        setDraggedCardHeight(height);
-                      }}
-                    />
-                  ))}
-                </div>
-              );
-            })}
-          </div>
-        </WeekDropZone>
+                    {events.map((event) => (
+                      <WeekEventCard
+                        {...event}
+                        key={event.id}
+                        onDragEnd={(daysToMove) =>
+                          handleEventDrop(event.id, daysToMove)
+                        }
+                        onDragStart={(height) => {
+                          setDraggedEventId(event.id);
+                          setStartDay(dateString);
+                          setDraggedCardHeight(height);
+                          setIsDragging(true);
+                        }}
+                      />
+                    ))}
+                  </div>
+                );
+              })}
+            </div>
+          </WeekDropZone>
+        </div>
       </div>
-      {isNearLeftEdge ? (
-        <div className="fixed left-0 top-0 w-[100px] bg-gradient-to-r h-screen min-h-[calc(100dvh_-_180px)] from-blue-500/20 to-transparent z-[100] flex items-end pb-[60px] justify-start">
-          <div className="ml-4 bg-blue-500 rounded-full p-2 text-white">
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                d="M15 19l-7-7 7-7"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-              />
-            </svg>
+      {isDragging && isNearLeftEdge ? (
+        <div className="fixed left-0 top-0 w-[100px] bg-gradient-to-r h-screen min-h-[calc(100dvh_-_180px)] from-blue-500/40 to-transparent z-[100] flex items-end pb-[60px] justify-start">
+          <div className="ml-4 relative">
+            <div className="relative z-10">
+              <div className="bg-blue-500 rounded-full p-2 text-white relative">
+                <svg
+                  className="absolute top-0 left-0 -rotate-90"
+                  height="40"
+                  width="40"
+                >
+                  <circle
+                    cx="20"
+                    cy="20"
+                    fill="none"
+                    r="19"
+                    stroke="white"
+                    strokeWidth="2"
+                  />
+                  <circle
+                    cx="20"
+                    cy="20"
+                    fill="none"
+                    r="19"
+                    stroke="url(#gradient)"
+                    strokeDasharray="120 120"
+                    strokeDashoffset={120 - edgeProgress * 120}
+                    strokeWidth="2"
+                  />
+                  <defs>
+                    <linearGradient
+                      gradientUnits="userSpaceOnUse"
+                      id="gradient"
+                      x1="20"
+                      x2="20"
+                      y1="0"
+                      y2="40"
+                    >
+                      <stop offset="0%" stopColor="#8B5CF6" />
+                      <stop offset="100%" stopColor="#3B82F6" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+                <svg
+                  className="w-6 h-6 relative z-10"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M15 19l-7-7 7-7"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                  />
+                </svg>
+              </div>
+            </div>
           </div>
         </div>
       ) : null}
 
-      {isNearRightEdge ? (
-        <div className="fixed right-0 top-0 w-[100px] bg-gradient-to-l min-h-[calc(100dvh_-_180px)] h-screen from-blue-500/20 to-transparent z-[100] flex items-end pb-[60px] justify-end">
-          <div className="mr-4 bg-blue-500 rounded-full p-2 text-white">
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                d="M9 5l7 7-7 7"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-              />
-            </svg>
+      {isDragging && isNearRightEdge ? (
+        <div className="fixed right-0 top-0 w-[100px] bg-gradient-to-l min-h-[calc(100dvh_-_180px)] h-screen from-blue-500/40 to-transparent z-[100] flex items-end pb-[60px] justify-end">
+          <div className="mr-4 relative">
+            <div className="relative z-10">
+              <div className="bg-blue-500 rounded-full p-2 text-white relative">
+                <svg
+                  className="absolute top-0 left-0 -rotate-90"
+                  height="40"
+                  width="40"
+                >
+                  <circle
+                    cx="20"
+                    cy="20"
+                    fill="none"
+                    r="19"
+                    stroke="white"
+                    strokeWidth="2"
+                  />
+                  <circle
+                    cx="20"
+                    cy="20"
+                    fill="none"
+                    r="19"
+                    stroke="url(#gradient)"
+                    strokeDasharray="120 120"
+                    strokeDashoffset={120 - edgeProgress * 120}
+                    strokeWidth="2"
+                  />
+                  <defs>
+                    <linearGradient
+                      gradientUnits="userSpaceOnUse"
+                      id="gradient"
+                      x1="20"
+                      x2="20"
+                      y1="0"
+                      y2="40"
+                    >
+                      <stop offset="0%" stopColor="#8B5CF6" />
+                      <stop offset="100%" stopColor="#3B82F6" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+                <svg
+                  className="w-6 h-6 relative z-10"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M9 5l7 7-7 7"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                  />
+                </svg>
+              </div>
+            </div>
           </div>
         </div>
       ) : null}
