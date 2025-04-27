@@ -2,6 +2,7 @@ import { memo, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 
+import { formatDurationTime } from "@/helpers/dateUtils";
 import { type Event } from "@/models";
 import { useDraggable } from "@dnd-kit/core";
 
@@ -89,20 +90,7 @@ export const DayEventCard = memo(
       return `${formattedHours}:${minutes} ${hoursNum >= 12 ? "PM" : "AM"}`;
     }, [timestamp]);
 
-    const formattedDuration = useMemo(() => {
-      const hours = Math.floor(duration / 60);
-      const minutes = duration % 60;
-
-      if (hours === 0) {
-        return `${minutes} min`;
-      }
-
-      if (minutes === 0) {
-        return `${hours} ${hours === 1 ? "hour" : "hours"}`;
-      }
-
-      return `${hours} ${hours === 1 ? "hour" : "hours"} ${minutes} min`;
-    }, [duration]);
+    const formattedDuration = formatDurationTime(duration);
 
     return (
       <div className="relative">

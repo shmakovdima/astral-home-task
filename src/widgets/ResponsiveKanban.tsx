@@ -1,5 +1,5 @@
 import { DailyView } from "./DailyView";
-import { WeeklyCalendarView } from "./WeeklyCalendarView";
+import { WeeklyView } from "./WeeklyView";
 
 export const ResponsiveKanban = () => (
   <div>
@@ -7,7 +7,7 @@ export const ResponsiveKanban = () => (
       <DailyView />
     </div>
     <div className="hidden md:block">
-      <WeeklyCalendarView />
+      <WeeklyView />
     </div>
   </div>
 );

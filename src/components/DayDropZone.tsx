@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useDrop } from "react-dnd";
 
-type DayDropZoneProps = {
+type Props = {
   children: React.ReactNode;
   onDayChange: (daysToMove: number) => void;
   onDrop?: (daysToMove: number) => void;
@@ -11,7 +11,7 @@ export const DayDropZone = ({
   children,
   onDayChange,
   onDrop,
-}: DayDropZoneProps) => {
+}: Props) => {
   const isDraggingRef = useRef(false);
   const lastDirectionRef = useRef<"left" | "right" | null>(null);
   const scrollIntervalRef = useRef<NodeJS.Timeout | null>(null);

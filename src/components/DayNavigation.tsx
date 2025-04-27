@@ -15,7 +15,7 @@ type Props = {
   setActiveDay: (day: string) => void;
 };
 
-export const DaysNavigation = ({ activeDay, setActiveDay }: Props) => {
+export const DayNavigation = ({ activeDay, setActiveDay }: Props) => {
   const [days, setDays] = useState<DayInfo[]>([]);
   const [isAnimating, setIsAnimating] = useState(false);
 

@@ -11,12 +11,12 @@ import {
 
 import { WeekDropZone } from "@/components/WeekDropZone";
 import { WeekEventCard } from "@/components/WeekEventCard";
-import { WeeksNavigation } from "@/components/WeeksNavigation";
+import { WeekNavigation } from "@/components/WeekNavigation";
 import { cnTwMerge } from "@/helpers/cnTwMerge";
 import { useAllEvents } from "@/hooks/api/useEvents";
 import { useUpdateEventDate } from "@/hooks/api/useUpdateEventDate";
 
-export const WeeklyCalendarView = () => {
+export const WeeklyView = () => {
   const { data: eventsByDate } = useAllEvents();
   const [currentWeek, setCurrentWeek] = useState<Date[]>([]);
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -247,7 +247,7 @@ export const WeeklyCalendarView = () => {
 
   return (
     <div className="flex flex-col h-full">
-      <WeeksNavigation
+      <WeekNavigation
         currentWeek={currentWeek}
         onNextWeek={handleNextWeek}
         onPrevWeek={handlePrevWeek}

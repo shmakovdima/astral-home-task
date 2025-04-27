@@ -1,9 +1,9 @@
 import { format, isToday } from "date-fns";
 
-import { WeeksHeader } from "@/components/WeeksHeader";
+import { WeekHeader } from "@/components/WeekHeader";
 import { cnTwMerge } from "@/helpers/cnTwMerge";
 
-type WeeksNavigationProps = {
+type Props = {
   currentWeek: Date[];
   weekStart: Date;
   weekEnd: Date;
@@ -11,15 +11,15 @@ type WeeksNavigationProps = {
   onPrevWeek: () => void;
 };
 
-export const WeeksNavigation = ({
+export const WeekNavigation = ({
   currentWeek,
   weekStart,
   weekEnd,
   onNextWeek,
   onPrevWeek,
-}: WeeksNavigationProps) => (
+}: Props) => (
   <div className="bg-gradient-to-r from-blue-500 to-purple-500 p-6 text-white overflow-hidden">
-    <WeeksHeader
+    <WeekHeader
       onNextWeek={onNextWeek}
       onPrevWeek={onPrevWeek}
       weekEnd={weekEnd}

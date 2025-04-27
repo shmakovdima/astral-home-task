@@ -4,6 +4,7 @@ import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 
 import { cnTwMerge } from "@/helpers/cnTwMerge";
+import { formatDurationTime } from "@/helpers/dateUtils";
 import { type Event } from "@/models";
 
 type WeekEventCardProps = Event & {
@@ -115,21 +116,6 @@ export const WeekEventCard = memo(
       return `${formattedHours}:${minutes} ${hoursNum >= 12 ? "PM" : "AM"}`;
     }, [timestamp]);
 
-    const formattedDuration = useMemo(() => {
-      const hours = Math.floor(duration / 60);
-      const minutes = duration % 60;
-
-      if (hours === 0) {
-        return `${minutes} min`;
-      }
-
-      if (minutes === 0) {
-        return `${hours} ${hours === 1 ? "hour" : "hours"}`;
-      }
-
-      return `${hours} ${hours === 1 ? "hour" : "hours"} ${minutes} min`;
-    }, [duration]);
-
     const [{ isDragging }, drag] = useDrag(
       () => ({
         type: "event",
@@ -170,6 +156,8 @@ export const WeekEventCard = memo(
       cardRef.current = el;
       drag(el);
     };
+
+    const formattedDuration = formatDurationTime(duration);
 
     return (
       <div className="relative">

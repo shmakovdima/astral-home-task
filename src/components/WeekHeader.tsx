@@ -9,7 +9,7 @@ type Props = {
   onNextWeek: () => void;
 };
 
-export const WeeksHeader = ({
+export const WeekHeader = ({
   weekStart,
   weekEnd,
   onPrevWeek,

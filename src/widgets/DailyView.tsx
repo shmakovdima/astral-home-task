@@ -3,7 +3,7 @@ import { addDays, format, isSameDay } from "date-fns";
 
 import { DayEventCard } from "@/components/DayEventCard";
 import { DayHeader } from "@/components/DayHeader";
-import { DaysNavigation } from "@/components/DaysNavigation";
+import { DayNavigation } from "@/components/DayNavigation";
 import { useAllEvents } from "@/hooks/api/useEvents";
 import { useUpdateEventDate } from "@/hooks/api/useUpdateEventDate";
 import { useSwipeNavigation } from "@/hooks/useSwipeNavigation";
@@ -242,7 +242,7 @@ export const DailyView = () => {
         className="flex flex-col gap-4 min-h-[calc(100vh_-_160px)] relative"
         ref={ref}
       >
-        <DaysNavigation activeDay={activeDay} setActiveDay={setActiveDay} />
+        <DayNavigation activeDay={activeDay} setActiveDay={setActiveDay} />
         <div className="flex flex-col gap-4 p-4">
           <DayHeader date={activeDay} />
           <div className="grid grid-cols-1 gap-4">
