@@ -1,4 +1,4 @@
-import { memo, useEffect, useMemo, useRef, useState, useCallback } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDrag } from "react-dnd";
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
@@ -109,6 +109,7 @@ export const WeekEventCard = memo(
     useEffect(() => {
       if (isExpanded) {
         document.addEventListener("keydown", handleEscapeKey);
+
         return () => {
           document.removeEventListener("keydown", handleEscapeKey);
         };
