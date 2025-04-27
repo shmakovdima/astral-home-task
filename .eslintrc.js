@@ -77,6 +77,7 @@ module.exports = {
   ],
   root: true,
   rules: {
+    "@next/next/no-img-element": "off",
     "no-warning-comments": ["error", { "terms": ["todo", "fixme", "xxx"], "location": "anywhere" }],
     "no-inline-comments": "error",
     "line-comment-position": ["error", { "position": "above" }],
@@ -263,7 +264,6 @@ module.exports = {
     "react/react-in-jsx-scope": "off",
     "react/prop-types": "off",
     "@next/next/no-html-link-for-pages": "error",
-    "@next/next/no-img-element": "error",
     "@next/next/no-sync-scripts": "error",
     "@next/next/no-typos": "error",
     "@next/next/no-unwanted-polyfillio": "error",

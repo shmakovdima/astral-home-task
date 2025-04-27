@@ -3,8 +3,8 @@ import { useDrag } from "react-dnd";
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 
-import { type Event } from "@/models";
 import { cnTwMerge } from "@/helpers/cnTwMerge";
+import { type Event } from "@/models";
 
 type WeekEventCardProps = Event & {
   onDragStart?: (height: number) => void;
@@ -46,7 +46,6 @@ export const WeekEventCard = memo(
     disableAnimation,
     onExpandChange,
   }: WeekEventCardProps) => {
-    const [isLoading, setIsLoading] = useState(true);
     const [isExpanded, setIsExpanded] = useState(false);
     const cardRef = useRef<HTMLDivElement>(null);
     const hasEndedRef = useRef(false);
@@ -55,7 +54,7 @@ export const WeekEventCard = memo(
     const getLayoutId = (prefix: string) => {
       if (disableAnimation) return undefined;
       if (isDragging) return undefined;
-      return `${prefix}-${id}`;
+      return `weekday-${prefix}-${id}`;
     };
 
     useEffect(() => {
@@ -178,8 +177,36 @@ export const WeekEventCard = memo(
           onClick={() => !isDragging && setIsExpanded(true)}
           ref={dragRef}
         >
+          <div className="absolute inset-0 flex flex-col w-full z-0">
+            <div className="relative w-full h-32 rounded-t-lg overflow-hidden">
+              <img
+                alt={title}
+                className="w-full h-full object-cover"
+                src={imageUrl}
+              />
+              <div className="absolute flex justify-center align-middle top-3 right-3 px-2 py-1 rounded-full bg-gradient-to-r from-indigo-600 to-violet-600">
+                <span className="text-xs font-medium text-white">
+                  {eventTime}
+                </span>
+              </div>
+            </div>
+            <div className="flex flex-col p-4">
+              <div className="overflow-hidden">
+                <h3 className="text-[18px] break-all leading-[22px] font-semibold line-clamp-1 text-gray-900 w-full text-ellipsis">
+                  {title}
+                </h3>
+              </div>
+              <div className="overflow-hidden">
+                <p className="mt-2 text-[14px] leading-5 text-gray-600 line-clamp-2">
+                  {description}
+                </p>
+              </div>
+            </div>
+          </div>
+
           <motion.div
-            className="flex flex-col w-full"
+            animate={{ opacity: 0 }}
+            className="flex flex-col w-full relative z-10"
             layoutId={getLayoutId("card")}
           >
             <motion.div
@@ -188,11 +215,7 @@ export const WeekEventCard = memo(
             >
               <Image
                 alt={title}
-                className={`transition-opacity duration-300 ${
-                  isLoading ? "opacity-0" : "opacity-100"
-                }`}
                 fill
-                onLoad={() => setIsLoading(false)}
                 priority
                 src={imageUrl}
                 style={{ objectFit: "cover" }}
@@ -249,9 +272,12 @@ export const WeekEventCard = memo(
               />
               <motion.div
                 animate={{ opacity: 1 }}
-                className={cnTwMerge(`fixed inset-0 flex items-center justify-center`, {
-                  'pointer-events-none': isExpanded
-                })}
+                className={cnTwMerge(
+                  "fixed inset-0 flex items-center justify-center",
+                  {
+                    "pointer-events-none": isExpanded,
+                  },
+                )}
                 exit={{ opacity: 0 }}
                 initial={{ opacity: 0 }}
                 transition={{ duration: 0.3 }}
@@ -264,13 +290,7 @@ export const WeekEventCard = memo(
                     className="relative w-full h-[240px]"
                     layoutId={getLayoutId("image-container")}
                   >
-                    <Image
-                      alt={title}
-                      fill
-                      priority
-                      src={imageUrl}
-                      style={{ objectFit: "cover" }}
-                    />
+                    <Image alt={title} fill priority src={imageUrl} />
                     <motion.div
                       className="absolute flex justify-center align-middle top-5 right-4 px-2 py-1 rounded-full bg-gradient-to-r from-indigo-600 to-violet-600"
                       layoutId={getLayoutId("time")}
