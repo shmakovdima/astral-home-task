@@ -1,5 +1,4 @@
 const nextConfig = {
-  basePath: process.env.NODE_ENV === 'production' ? '/astral-home-task' : '',
   reactStrictMode: true,
   images: {
     unoptimized: true,
