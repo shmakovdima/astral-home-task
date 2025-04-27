@@ -337,47 +337,46 @@ export const WeeklyCalendarView = () => {
             })}
           </div>
         </WeekDropZone>
-
-        {isNearLeftEdge ? (
-          <div className="absolute left-0 top-0 w-[100px] bg-gradient-to-r h-screen from-blue-500/20 to-transparent z-[100] flex items-center justify-start">
-            <div className="ml-4 bg-blue-500 rounded-full p-2 text-white">
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  d="M15 19l-7-7 7-7"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                />
-              </svg>
-            </div>
-          </div>
-        ) : null}
-
-        {isNearRightEdge ? (
-          <div className="absolute right-0 top-0 w-[100px] bg-gradient-to-l h-screen from-blue-500/20 to-transparent z-[100] flex items-center justify-end">
-            <div className="mr-4 bg-blue-500 rounded-full p-2 text-white">
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  d="M9 5l7 7-7 7"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                />
-              </svg>
-            </div>
-          </div>
-        ) : null}
       </div>
+      {isNearLeftEdge ? (
+        <div className="fixed left-0 top-0 w-[100px] bg-gradient-to-r h-screen min-h-[calc(100vh_-_180px)] from-blue-500/20 to-transparent z-[100] flex items-end pb-[60px] justify-start">
+          <div className="ml-4 bg-blue-500 rounded-full p-2 text-white">
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M15 19l-7-7 7-7"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+              />
+            </svg>
+          </div>
+        </div>
+      ) : null}
+
+      {isNearRightEdge ? (
+        <div className="fixed right-0 top-0 w-[100px] bg-gradient-to-l min-h-[calc(100vh_-_180px)] h-screen from-blue-500/20 to-transparent z-[100] flex items-end pb-[60px] justify-end">
+          <div className="mr-4 bg-blue-500 rounded-full p-2 text-white">
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M9 5l7 7-7 7"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+              />
+            </svg>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 };

@@ -117,10 +117,12 @@ export const DayEventCard = memo(
         >
           <motion.div
             className="flex flex-col gap-4 w-full"
+            initial={false}
             layoutId={isDragOverlay ? undefined : getLayoutId("card", id)}
           >
             <motion.div
               className="relative w-full h-32 rounded-t-lg overflow-hidden"
+              initial={false}
               layoutId={
                 isDragOverlay ? undefined : getLayoutId("image-container", id)
               }
@@ -136,6 +138,7 @@ export const DayEventCard = memo(
               />
               <motion.div
                 className="absolute flex justify-center align-middle top-3 right-3 px-2 py-1 rounded-full bg-gradient-to-r from-indigo-600 to-violet-600"
+                initial={false}
                 layoutId={isDragOverlay ? undefined : getLayoutId("time", id)}
               >
                 <span className="text-xs font-medium text-white">
@@ -145,16 +148,19 @@ export const DayEventCard = memo(
             </motion.div>
             <motion.div
               className="flex flex-col p-4"
+              initial={false}
               layoutId={isDragOverlay ? undefined : getLayoutId("content", id)}
             >
               <motion.div
                 className="overflow-hidden"
+                initial={false}
                 layoutId={
                   isDragOverlay ? undefined : getLayoutId("title-container", id)
                 }
               >
                 <motion.h3
                   className="text-[18px] leading-[22px] font-semibold text-gray-900 w-full line-clamp-1 text-ellipsis select-none"
+                  initial={false}
                   layoutId={
                     isDragOverlay ? undefined : getLayoutId("title", id)
                   }
@@ -164,6 +170,7 @@ export const DayEventCard = memo(
               </motion.div>
               <motion.div
                 className="overflow-hidden"
+                initial={false}
                 layoutId={
                   isDragOverlay
                     ? undefined
@@ -172,6 +179,7 @@ export const DayEventCard = memo(
               >
                 <motion.p
                   className="mt-2 text-[14px] leading-5 text-gray-600 line-clamp-2 select-none"
+                  initial={false}
                   layoutId={
                     isDragOverlay ? undefined : getLayoutId("description", id)
                   }
