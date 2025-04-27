@@ -25,8 +25,10 @@ const HOLD_DURATION = 1500;
 
 const DragMonitor = ({
   onDayChange,
+  onEdgeChange,
 }: {
   onDayChange: (direction: "prev" | "next") => void;
+  onEdgeChange?: (isLeft: boolean, isRight: boolean) => void;
 }) => {
   const edgeTimeoutRef = useRef<number | null>(null);
   const lastTransitionTimeRef = useRef(0);
@@ -57,10 +59,13 @@ const DragMonitor = ({
 
     if (x > threshold) {
       newDirection = "next";
+      onEdgeChange?.(false, true);
     } else if (x < -threshold) {
       newDirection = "prev";
+      onEdgeChange?.(true, false);
     } else {
       newDirection = null;
+      onEdgeChange?.(false, false);
     }
 
     if (newDirection === null && lastDirectionRef.current !== null) {
@@ -102,11 +107,13 @@ const DragMonitor = ({
       clearTimers();
       lastDeltaRef.current = { x: 0 };
       lastDirectionRef.current = null;
+      onEdgeChange?.(false, false);
     },
     onDragCancel: () => {
       clearTimers();
       lastDeltaRef.current = { x: 0 };
       lastDirectionRef.current = null;
+      onEdgeChange?.(false, false);
     },
   });
 
@@ -124,6 +131,8 @@ export const DailyView = () => {
   const [activeDay, setActiveDay] = useState(format(new Date(), "yyyy-MM-dd"));
   const [activeEvent, setActiveEvent] = useState<Event | null>(null);
   const [draggedHeight, setDraggedHeight] = useState<number | null>(null);
+  const [isNearLeftEdge, setIsNearLeftEdge] = useState(false);
+  const [isNearRightEdge, setIsNearRightEdge] = useState(false);
   const dragOverlayRef = useRef<HTMLDivElement>(null);
   const { data: eventsByDate } = useAllEvents();
   const { mutate: updateEventDate } = useUpdateEventDate();
@@ -213,6 +222,11 @@ export const DailyView = () => {
   const showDropPlaceholder =
     activeEvent && originalEventDateRef.current !== activeDay;
 
+  const handleEdgeChange = useCallback((isLeft: boolean, isRight: boolean) => {
+    setIsNearLeftEdge(isLeft);
+    setIsNearRightEdge(isRight);
+  }, []);
+
   return (
     <DndContext
       onDragEnd={handleDragEnd}
@@ -220,9 +234,12 @@ export const DailyView = () => {
       onDragStart={handleDragStart}
       sensors={sensors}
     >
-      <DragMonitor onDayChange={handleDayChange} />
+      <DragMonitor
+        onDayChange={handleDayChange}
+        onEdgeChange={handleEdgeChange}
+      />
       <div
-        className="flex flex-col gap-4 min-h-[calc(100vh_-_200px)]"
+        className="flex flex-col gap-4 min-h-[calc(100vh_-_160px)] relative"
         ref={ref}
       >
         <DaysNavigation activeDay={activeDay} setActiveDay={setActiveDay} />
@@ -270,14 +287,54 @@ export const DailyView = () => {
             ))}
           </div>
         </div>
+
+        <DragOverlay dropAnimation={null} modifiers={[]}>
+          {activeEvent ? (
+            <div className="shadow-lg opacity-70" ref={dragOverlayRef}>
+              <DayEventCard {...activeEvent} isDragOverlay />
+            </div>
+          ) : null}
+        </DragOverlay>
       </div>
-      <DragOverlay dropAnimation={null} modifiers={[]}>
-        {activeEvent ? (
-          <div className="shadow-lg opacity-70" ref={dragOverlayRef}>
-            <DayEventCard {...activeEvent} isDragOverlay />
+      {isNearLeftEdge ? (
+        <div className="absolute left-0 min-h-[calc(100vh_-_160px)] top-0 w-[100px] bg-gradient-to-r h-screen from-blue-500/20 to-transparent z-[100] flex items-center justify-start">
+          <div className="ml-4 bg-blue-500 rounded-full p-2 text-white">
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M15 19l-7-7 7-7"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+              />
+            </svg>
           </div>
-        ) : null}
-      </DragOverlay>
+        </div>
+      ) : null}
+
+      {isNearRightEdge ? (
+        <div className="absolute h-full min-h-[calc(100vh_-_160px)] right-0 top-0 w-[100px] bg-gradient-to-l h-screen from-blue-500/20 to-transparent z-[100] flex items-center justify-end">
+          <div className="mr-4 bg-blue-500 rounded-full p-2 text-white">
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M9 5l7 7-7 7"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+              />
+            </svg>
+          </div>
+        </div>
+      ) : null}
     </DndContext>
   );
 };
