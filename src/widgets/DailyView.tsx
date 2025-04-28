@@ -19,8 +19,10 @@ import { useAllEvents } from "@/hooks/api/useEvents";
 import { useUpdateEventDate } from "@/hooks/api/useUpdateEventDate";
 import { useSwipeNavigation } from "@/hooks/useSwipeNavigation";
 import type { Event } from "@/models";
+import { useToastContext } from "@/providers/ToastProvider";
 
 export const DailyView = () => {
+  const { showToast } = useToastContext();
   const [activeDay, setActiveDay] = useState(format(new Date(), "yyyy-MM-dd"));
   const [activeEvent, setActiveEvent] = useState<Event | null>(null);
   const [draggedHeight, setDraggedHeight] = useState<number | null>(null);
@@ -28,7 +30,15 @@ export const DailyView = () => {
   const [isNearRightEdge, setIsNearRightEdge] = useState(false);
   const dragOverlayRef = useRef<HTMLDivElement>(null);
   const { data: eventsByDate } = useAllEvents();
-  const { mutate: updateEventDate } = useUpdateEventDate();
+
+  const { mutate: updateEventDate } = useUpdateEventDate({
+    onError: () => {
+      showToast(
+        "API Error: Failed to update event date. Reload browser - msw service worker stopped working",
+      );
+    },
+  });
+
   const lastChangeRef = useRef<number>(0);
   const originalEventDateRef = useRef<string | null>(null);
   const [edgeProgress, setEdgeProgress] = useState(0);
@@ -114,7 +124,7 @@ export const DailyView = () => {
   const isCurrentDay = isSameDay(new Date(activeDay), new Date());
 
   const showDropPlaceholder =
-    activeEvent && originalEventDateRef.current !== activeDay;
+    !!activeEvent && originalEventDateRef.current !== activeDay;
 
   const handleEdgeChange = useCallback(
     (isLeft: boolean, isRight: boolean, progress: number = 0) => {
@@ -178,7 +188,11 @@ export const DailyView = () => {
               </div>
             )}
             {dayEvents.map((event: Event) => (
-              <DayEventCard key={event.id} {...event} />
+              <DayEventCard
+                disabledAnimation={showDropPlaceholder}
+                key={`${event.id}-${showDropPlaceholder}`}
+                {...event}
+              />
             ))}
           </div>
         </div>

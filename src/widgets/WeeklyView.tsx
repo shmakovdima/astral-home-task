@@ -15,9 +15,24 @@ import { WeekNavigation } from "@/components/WeekNavigation";
 import { cnTwMerge } from "@/helpers/cnTwMerge";
 import { useAllEvents } from "@/hooks/api/useEvents";
 import { useUpdateEventDate } from "@/hooks/api/useUpdateEventDate";
+import { useToastContext } from "@/providers/ToastProvider";
+
+type WeekDropZoneRef = {
+  resetStates: () => void;
+};
 
 export const WeeklyView = () => {
+  const { showToast } = useToastContext();
   const { data: eventsByDate } = useAllEvents();
+
+  const { mutate: updateEventDate } = useUpdateEventDate({
+    onError: () => {
+      showToast(
+        "API Error: Failed to update event date. Reload browser - msw service worker stopped working",
+      );
+    },
+  });
+
   const [currentWeek, setCurrentWeek] = useState<Date[]>([]);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [draggedEventId, setDraggedEventId] = useState<string | null>(null);
@@ -35,9 +50,10 @@ export const WeeklyView = () => {
 
   const [weekOffset, setWeekOffset] = useState(0);
   const originalEventDateRef = useRef<string | null>(null);
-  const { mutate: updateEventDate } = useUpdateEventDate();
 
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+
+  const weekDropZoneRef = useRef<WeekDropZoneRef | null>(null);
 
   useEffect(() => {
     const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
@@ -297,6 +313,38 @@ export const WeeklyView = () => {
   const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
   const weekEnd = endOfWeek(currentDate, { weekStartsOn: 1 });
 
+  useEffect(() => {
+    const handleAppSwipeReset = () => {
+      if (isProcessingDropRef.current) {
+        return;
+      }
+
+      setIsDayChanged(false);
+      setTargetDayIndex(null);
+
+      setStartDay(null);
+      setWeekOffset(0);
+      originalEventDateRef.current = null;
+      setIsDragging(false);
+      setDraggedEventId(null);
+      setDraggedCardHeight(null);
+
+      handleEdgeChange(false, false);
+
+      if (weekDropZoneRef.current) {
+        weekDropZoneRef.current.resetStates();
+      }
+    };
+
+    window.addEventListener("focus", handleAppSwipeReset);
+    window.addEventListener("blur", handleAppSwipeReset);
+
+    return () => {
+      window.removeEventListener("focus", handleAppSwipeReset);
+      window.removeEventListener("blur", handleAppSwipeReset);
+    };
+  }, [handleEdgeChange]);
+
   return (
     <div className="flex flex-col h-full">
       <WeekNavigation
@@ -307,7 +355,7 @@ export const WeeklyView = () => {
         weekStart={weekStart}
       />
 
-      <div className="flex-1 overflow-hidden px-12 relative">
+      <div className="flex-1 overflow-hidden relative">
         <div className="h-full overflow-x-auto" ref={scrollContainerRef}>
           <WeekDropZone
             onDayChange={handleDayChange}
@@ -319,10 +367,15 @@ export const WeeklyView = () => {
               setIsDragging(false);
             }}
             onEdgeChange={handleEdgeChange}
+            onResetTargetDay={() => {
+              setIsDayChanged(false);
+              setTargetDayIndex(null);
+            }}
             onWeekChange={handleWeekChange}
             onWeekChangeProgress={handleWeekChangeProgress}
+            ref={weekDropZoneRef}
           >
-            <div className="grid grid-cols-7 gap-0 overflow-hidden flex-1 h-full">
+            <div className="grid px-12 grid-cols-7 gap-0 overflow-hidden flex-1 h-full">
               {currentWeek.map((date, index) => {
                 const events = getEventsForDay(date);
                 const isLastDay = index === currentWeek.length - 1;
@@ -393,130 +446,130 @@ export const WeeklyView = () => {
                 );
               })}
             </div>
+            {isDragging && isNearLeftEdge ? (
+              <div className="fixed left-0 top-0 w-[100px] bg-gradient-to-r h-screen min-h-[calc(100dvh_-_180px)] from-blue-500/40 to-transparent z-[100] flex items-end pb-[60px] justify-start">
+                <div className="ml-4 relative">
+                  <div className="relative z-10">
+                    <div className="bg-blue-500 rounded-full p-2 text-white relative">
+                      <svg
+                        className="absolute top-0 left-0 -rotate-90"
+                        height="40"
+                        width="40"
+                      >
+                        <circle
+                          cx="20"
+                          cy="20"
+                          fill="none"
+                          r="19"
+                          stroke="white"
+                          strokeWidth="2"
+                        />
+                        <circle
+                          cx="20"
+                          cy="20"
+                          fill="none"
+                          r="19"
+                          stroke="url(#gradient)"
+                          strokeDasharray="120 120"
+                          strokeDashoffset={120 - edgeProgress * 120}
+                          strokeWidth="2"
+                        />
+                        <defs>
+                          <linearGradient
+                            gradientUnits="userSpaceOnUse"
+                            id="gradient"
+                            x1="20"
+                            x2="20"
+                            y1="0"
+                            y2="40"
+                          >
+                            <stop offset="0%" stopColor="#8B5CF6" />
+                            <stop offset="100%" stopColor="#3B82F6" />
+                          </linearGradient>
+                        </defs>
+                      </svg>
+                      <svg
+                        className="w-6 h-6 relative z-10"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M15 19l-7-7 7-7"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+
+            {isDragging && isNearRightEdge ? (
+              <div className="fixed right-0 top-0 w-[100px] bg-gradient-to-l min-h-[calc(100dvh_-_180px)] h-screen from-blue-500/40 to-transparent z-[100] flex items-end pb-[60px] justify-end">
+                <div className="mr-4 relative">
+                  <div className="relative z-10">
+                    <div className="bg-blue-500 rounded-full p-2 text-white relative">
+                      <svg
+                        className="absolute top-0 left-0 -rotate-90"
+                        height="40"
+                        width="40"
+                      >
+                        <circle
+                          cx="20"
+                          cy="20"
+                          fill="none"
+                          r="19"
+                          stroke="white"
+                          strokeWidth="2"
+                        />
+                        <circle
+                          cx="20"
+                          cy="20"
+                          fill="none"
+                          r="19"
+                          stroke="url(#gradient)"
+                          strokeDasharray="120 120"
+                          strokeDashoffset={120 - edgeProgress * 120}
+                          strokeWidth="2"
+                        />
+                        <defs>
+                          <linearGradient
+                            gradientUnits="userSpaceOnUse"
+                            id="gradient"
+                            x1="20"
+                            x2="20"
+                            y1="0"
+                            y2="40"
+                          >
+                            <stop offset="0%" stopColor="#8B5CF6" />
+                            <stop offset="100%" stopColor="#3B82F6" />
+                          </linearGradient>
+                        </defs>
+                      </svg>
+                      <svg
+                        className="w-6 h-6 relative z-10"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M9 5l7 7-7 7"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : null}
           </WeekDropZone>
         </div>
       </div>
-      {isDragging && isNearLeftEdge ? (
-        <div className="fixed left-0 top-0 w-[100px] bg-gradient-to-r h-screen min-h-[calc(100dvh_-_180px)] from-blue-500/40 to-transparent z-[100] flex items-end pb-[60px] justify-start">
-          <div className="ml-4 relative">
-            <div className="relative z-10">
-              <div className="bg-blue-500 rounded-full p-2 text-white relative">
-                <svg
-                  className="absolute top-0 left-0 -rotate-90"
-                  height="40"
-                  width="40"
-                >
-                  <circle
-                    cx="20"
-                    cy="20"
-                    fill="none"
-                    r="19"
-                    stroke="white"
-                    strokeWidth="2"
-                  />
-                  <circle
-                    cx="20"
-                    cy="20"
-                    fill="none"
-                    r="19"
-                    stroke="url(#gradient)"
-                    strokeDasharray="120 120"
-                    strokeDashoffset={120 - edgeProgress * 120}
-                    strokeWidth="2"
-                  />
-                  <defs>
-                    <linearGradient
-                      gradientUnits="userSpaceOnUse"
-                      id="gradient"
-                      x1="20"
-                      x2="20"
-                      y1="0"
-                      y2="40"
-                    >
-                      <stop offset="0%" stopColor="#8B5CF6" />
-                      <stop offset="100%" stopColor="#3B82F6" />
-                    </linearGradient>
-                  </defs>
-                </svg>
-                <svg
-                  className="w-6 h-6 relative z-10"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    d="M15 19l-7-7 7-7"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                  />
-                </svg>
-              </div>
-            </div>
-          </div>
-        </div>
-      ) : null}
-
-      {isDragging && isNearRightEdge ? (
-        <div className="fixed right-0 top-0 w-[100px] bg-gradient-to-l min-h-[calc(100dvh_-_180px)] h-screen from-blue-500/40 to-transparent z-[100] flex items-end pb-[60px] justify-end">
-          <div className="mr-4 relative">
-            <div className="relative z-10">
-              <div className="bg-blue-500 rounded-full p-2 text-white relative">
-                <svg
-                  className="absolute top-0 left-0 -rotate-90"
-                  height="40"
-                  width="40"
-                >
-                  <circle
-                    cx="20"
-                    cy="20"
-                    fill="none"
-                    r="19"
-                    stroke="white"
-                    strokeWidth="2"
-                  />
-                  <circle
-                    cx="20"
-                    cy="20"
-                    fill="none"
-                    r="19"
-                    stroke="url(#gradient)"
-                    strokeDasharray="120 120"
-                    strokeDashoffset={120 - edgeProgress * 120}
-                    strokeWidth="2"
-                  />
-                  <defs>
-                    <linearGradient
-                      gradientUnits="userSpaceOnUse"
-                      id="gradient"
-                      x1="20"
-                      x2="20"
-                      y1="0"
-                      y2="40"
-                    >
-                      <stop offset="0%" stopColor="#8B5CF6" />
-                      <stop offset="100%" stopColor="#3B82F6" />
-                    </linearGradient>
-                  </defs>
-                </svg>
-                <svg
-                  className="w-6 h-6 relative z-10"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    d="M9 5l7 7-7 7"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                  />
-                </svg>
-              </div>
-            </div>
-          </div>
-        </div>
-      ) : null}
     </div>
   );
 };

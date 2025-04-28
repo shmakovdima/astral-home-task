@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import type { AppProps } from "next/app";
 import { Roboto } from "next/font/google";
+import { YandexMetricaProvider } from "next-yandex-metrica";
 
 import { DnDProvider } from "@/providers/DnDProvider";
 import { ReactQueryProvider } from "@/providers/ReactQueryProvider";
+import { ToastProvider } from "@/providers/ToastProvider";
 
 import "../styles/globals.css";
 
@@ -39,13 +41,24 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
   }
 
   return (
-    <ReactQueryProvider>
-      <DnDProvider>
-        <div className={roboto.className}>
-          <Component {...pageProps} />
-        </div>
-      </DnDProvider>
-    </ReactQueryProvider>
+    <YandexMetricaProvider
+      initParameters={{
+        clickmap: true,
+        trackLinks: true,
+        accurateTrackBounce: true,
+      }}
+      tagID={101466502}
+    >
+      <ReactQueryProvider>
+        <DnDProvider>
+          <ToastProvider>
+            <div className={roboto.className}>
+              <Component {...pageProps} />
+            </div>
+          </ToastProvider>
+        </DnDProvider>
+      </ReactQueryProvider>
+    </YandexMetricaProvider>
   );
 };
 

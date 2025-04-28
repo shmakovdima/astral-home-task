@@ -3,7 +3,13 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/axios";
 import { patchEventDateSchema } from "@/lib/validations";
 
-export const useUpdateEventDate = () => {
+type UseUpdateEventDateOptions = {
+  onError?: () => void;
+};
+
+export const useUpdateEventDate = ({
+  onError,
+}: UseUpdateEventDateOptions = {}) => {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -20,6 +26,9 @@ export const useUpdateEventDate = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["events"] });
+    },
+    onError: () => {
+      onError?.();
     },
   });
 };

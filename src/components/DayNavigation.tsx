@@ -60,10 +60,9 @@ export const DayNavigation = ({ activeDay, setActiveDay }: Props) => {
   };
 
   const dayVariants = {
-    hidden: { opacity: 0, x: -20 },
+    hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      x: 0,
       transition: {
         duration: 0.3,
         ease: "easeOut",
@@ -96,6 +95,7 @@ export const DayNavigation = ({ activeDay, setActiveDay }: Props) => {
                       ? "bg-gradient-to-br from-indigo-600 to-violet-600"
                       : "bg-gray-100/10 hover:bg-indigo-600/10",
                   )}
+                  exit={{ opacity: 0 }}
                   key={formatDate(day.date)}
                   layout
                   layoutId={`day-${formatDate(day.date)}`}

@@ -221,14 +221,20 @@ export const DayEventCard = memo(
                 exit={{ opacity: 0 }}
                 initial={{ opacity: 0 }}
                 onClick={() => setIsExpanded(false)}
-                transition={{ duration: 0.3 }}
+                transition={{
+                  ease: [0.4, 0, 0.4, 1],
+                  duration: 0.4,
+                }}
               />
               <motion.div
                 animate={{ opacity: 1 }}
                 className="fixed inset-0 flex items-center justify-center"
                 exit={{ opacity: 0 }}
                 initial={{ opacity: 0 }}
-                transition={{ duration: 0.3 }}
+                transition={{
+                  ease: [0.4, 0, 0.4, 1],
+                  duration: 0.3,
+                }}
               >
                 <motion.div
                   className="flex flex-col w-full h-full bg-white select-none"

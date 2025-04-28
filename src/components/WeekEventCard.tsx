@@ -160,11 +160,14 @@ export const WeekEventCard = memo(
     const formattedDuration = formatDurationTime(duration);
 
     return (
-      <div className="relative">
+      <div className="relative" draggable={false}>
         <div
-          className={`rounded-lg shadow-sm hover:shadow-md transition-all bg-white event-card ${
-            isDragging ? "opacity-50 cursor-grabbing" : ""
-          }`}
+          className={cnTwMerge(
+            "rounded-lg shadow-sm hover:shadow-md transition-all bg-white event-card select-none",
+            {
+              "opacity-50 cursor-grabbing": isDragging,
+            },
+          )}
           data-event-id={id}
           onClick={() => !isDragging && setIsExpanded(true)}
           onContextMenu={(e) => e.preventDefault()}
