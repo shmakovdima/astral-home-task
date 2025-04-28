@@ -20,10 +20,10 @@ An interactive event calendar with drag-and-drop functionality and animated tran
 - [Next.js](https://nextjs.org/) - React framework
 - [TypeScript](https://www.typescriptlang.org/) - Typed JavaScript
 - [Framer Motion](https://www.framer.com/motion/) - Animations
-- [Dnd-kit](https://dnd-kit.com/) - Drag-and-drop functionality
+- [Dnd-kit](https://dnd-kit.com/)/[react-dnd](https://react-dnd.github.io/react-dnd/about) - Drag-and-drop functionality
 - [Tailwind CSS](https://tailwindcss.com/) - Styling
 - [date-fns](https://date-fns.org/) - Date handling
-- [msw] (https://mswjs.io/) - Mocked Backend
+- [msw](https://mswjs.io/) - Mocked Backend
 
 ## Installation & Setup
 
