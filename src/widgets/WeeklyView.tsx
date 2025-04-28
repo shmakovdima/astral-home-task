@@ -307,7 +307,7 @@ export const WeeklyView = () => {
         weekStart={weekStart}
       />
 
-      <div className="flex-1 overflow-hidden px-6 relative">
+      <div className="flex-1 overflow-hidden px-10 relative">
         <div className="h-full overflow-x-auto" ref={scrollContainerRef}>
           <WeekDropZone
             onDayChange={handleDayChange}
