@@ -18,7 +18,8 @@ const events: EventsByDate = {
     {
       id: "523e4567-e89b-12d3-a456-426614174004",
       title: "Client Meeting",
-      description: "Review project progress and timeline adjustments.",
+      description:
+        "Review project progress and timeline adjustments. Discuss progress, blockers, and align on next week's priorities.",
       imageUrl: "/images/meeting.webp",
       timestamp: createEvent(dayAfterTomorrow, 11, 30),
       duration: 60,
@@ -30,7 +31,7 @@ const events: EventsByDate = {
       id: "323e4567-e89b-12d3-a456-426614174002",
       title: "Yoga Session",
       description:
-        "Join for a relaxing yoga session to reduce stress and improve mindfulness.",
+        "Join for a relaxing yoga session to reduce stress and improve mindfulness. Suitable for all levels, focusing on gentle stretches.",
       imageUrl: "/images/yoga.webp",
       timestamp: createEvent(tomorrow, 12, 0),
       duration: 45,
@@ -39,7 +40,8 @@ const events: EventsByDate = {
     {
       id: "423e4567-e89b-12d3-a456-426614174003",
       title: "Product Demo",
-      description: "Demo of UI improvements and performance optimizations.",
+      description:
+        "Demo of UI improvements and performance optimizations to gather stakeholder feedback.",
       imageUrl: "/images/demo.webp",
       timestamp: createEvent(tomorrow, 15, 30),
       duration: 90,
@@ -50,7 +52,8 @@ const events: EventsByDate = {
     {
       id: "223e4567-e89b-12d3-a456-426614174001",
       title: "Team Standup",
-      description: "Weekly standup meeting with the dev team.",
+      description:
+        "Weekly standup meeting with the dev team. Discuss progress, blockers, and align on next week's priorities.",
       imageUrl: "/images/standup.webp",
       timestamp: createEvent(today, 14, 0),
       duration: 45,
@@ -60,7 +63,7 @@ const events: EventsByDate = {
       id: "123e4567-e89b-12d3-a456-426614174000",
       title: "Coffee with Alex",
       description:
-        "Meet with Alex to brainstorm ideas for the upcoming product launch.",
+        "Meet with Alex to brainstorm ideas for the upcoming product launch. We'll review market research and competitor analysis to identify potential opportunities and challenges.",
       imageUrl: "/images/coffee.webp",
       timestamp: createEvent(today, 9, 0),
       duration: 30,
