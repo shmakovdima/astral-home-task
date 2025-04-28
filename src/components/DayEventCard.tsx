@@ -256,7 +256,7 @@ export const DayEventCard = memo(
                     </motion.div>
                     <motion.button
                       animate={{ opacity: 1 }}
-                      className="absolute top-3 left-3 w-8 h-8 rounded-full bg-black/80 backdrop-blur-sm flex items-center justify-center hover:bg-black transition-colors"
+                      className="absolute top-3 left-3 transition-colors duration-300 active:bg-black/20 hover:bg-black/60 w-8 h-8 rounded-full bg-black/80 backdrop-blur-sm flex items-center justify-center hover:bg-black transition-colors"
                       exit={{ opacity: 0 }}
                       initial={{ opacity: 0 }}
                       onClick={(e) => {
