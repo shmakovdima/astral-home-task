@@ -1,10 +1,10 @@
 import { memo, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
+import { useDraggable } from "@dnd-kit/core";
 import { AnimatePresence, motion } from "framer-motion";
 
 import { formatDurationTime } from "@/helpers/dateUtils";
 import { type Event } from "@/models";
-import { useDraggable } from "@dnd-kit/core";
 
 type Props = Event & {
   disabledAnimation?: boolean;
@@ -103,10 +103,12 @@ export const DayEventCard = memo(
 
     const formattedDuration = formatDurationTime(duration);
 
+    console.log("isInitialRender", isInitialRender);
+
     return (
       <div className="relative">
         <div
-          className="rounded-lg shadow-sm hover:shadow-md transition-all bg-white event-card select-none cursor-pointer"
+          className="rounded-lg shadow-sm hover:shadow-md bg-white event-card select-none cursor-pointer"
           data-event-id={id}
           onPointerDown={handlePointerDown}
           onPointerUp={handlePointerUp}

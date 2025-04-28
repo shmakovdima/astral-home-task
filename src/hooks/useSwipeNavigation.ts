@@ -25,7 +25,6 @@ export const useSwipeNavigation = ({
   }, []);
 
   const isHorizontalSwipe = (deltaX: number, deltaY: number): boolean => {
-    // Проверяем, что вертикальное смещение не превышает 40% от горизонтального
     const verticalToHorizontalRatio = Math.abs(deltaY) / Math.abs(deltaX);
     return verticalToHorizontalRatio <= 0.4;
   };

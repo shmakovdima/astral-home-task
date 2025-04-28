@@ -50,7 +50,6 @@ export const WeekDropZone = ({
 
         weekChangeTimerRef.current = null;
 
-        // Проверяем, остаемся ли мы в edge-зоне
         if (
           (direction === "prev" && isInLeftEdge) ||
           (direction === "next" && isInRightEdge)
@@ -122,6 +121,7 @@ export const WeekDropZone = ({
         clearTimeout(progressInterval);
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [onWeekChangeProgress, weekChangeTimerRef.current]);
 
   const [{ isOver }, drop] = useDrop(

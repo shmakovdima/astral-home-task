@@ -33,7 +33,7 @@ module.exports = {
           "error",
           {
             groups: [
-              ["^react", "^next", "^@tanstack", "^@testing-library", "^(?!@)", "^"],
+              ["^react", "^next", "^@tanstack", "@dnd-kit", "^@testing-library", "^(?!@)", "^"],
               ["^@"],
               ["^\\u0000"],
               ["^\\.\\.(?!/?$)", "^\\.\\./?$"],

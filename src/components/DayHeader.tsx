@@ -22,3 +22,5 @@ export const DayHeader = memo(({ date }: Props) => {
     </div>
   );
 });
+
+DayHeader.displayName = "DayHeader";

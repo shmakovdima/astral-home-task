@@ -432,3 +432,5 @@ export const WeekEventCard = memo(
     );
   },
 );
+
+WeekEventCard.displayName = "WeekEventCard";

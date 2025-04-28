@@ -1,13 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { addDays, format, isSameDay } from "date-fns";
-
-import { DayEventCard } from "@/components/DayEventCard";
-import { DayHeader } from "@/components/DayHeader";
-import { DayNavigation } from "@/components/DayNavigation";
-import { useAllEvents } from "@/hooks/api/useEvents";
-import { useUpdateEventDate } from "@/hooks/api/useUpdateEventDate";
-import { useSwipeNavigation } from "@/hooks/useSwipeNavigation";
-import type { Event } from "@/models";
+import { useCallback, useRef, useState } from "react";
 import {
   DndContext,
   type DragMoveEvent,
@@ -15,141 +6,19 @@ import {
   type DragStartEvent,
   MouseSensor,
   TouchSensor,
-  useDndMonitor,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
+import { addDays, format, isSameDay } from "date-fns";
 
-const EDGE_THRESHOLD = 0.2;
-const HOLD_DURATION = 1500;
-
-const DragMonitor = ({
-  onDayChange,
-  onEdgeChange,
-}: {
-  onDayChange: (direction: "prev" | "next") => void;
-  onEdgeChange?: (isLeft: boolean, isRight: boolean, progress?: number) => void;
-}) => {
-  const edgeTimeoutRef = useRef<number | null>(null);
-  const lastTransitionTimeRef = useRef(0);
-  const rafRef = useRef<number | null>(null);
-  const lastDeltaRef = useRef({ x: 0 });
-  const lastDirectionRef = useRef<"prev" | "next" | null>(null);
-  const wasInEdgeZoneRef = useRef(false);
-
-  const clearTimers = () => {
-    if (edgeTimeoutRef.current) {
-      window.clearTimeout(edgeTimeoutRef.current);
-      edgeTimeoutRef.current = null;
-    }
-
-    if (rafRef.current) {
-      window.cancelAnimationFrame(rafRef.current);
-      rafRef.current = null;
-    }
-  };
-
-  const checkPosition = () => {
-    if (!onDayChange) return;
-
-    const screenWidth = window.innerWidth;
-    const threshold = screenWidth * EDGE_THRESHOLD;
-    let newDirection: "prev" | "next" | null = null;
-
-    const { x } = lastDeltaRef.current;
-    const isInEdgeZone = Math.abs(x) > threshold;
-
-    // Reset timer when entering edge zone
-    if (!wasInEdgeZoneRef.current && isInEdgeZone) {
-      lastTransitionTimeRef.current = Date.now();
-    }
-
-    wasInEdgeZoneRef.current = isInEdgeZone;
-
-    if (x > threshold) {
-      newDirection = "next";
-
-      const progress = Math.min(
-        (Date.now() - lastTransitionTimeRef.current) / HOLD_DURATION,
-        1,
-      );
-
-      onEdgeChange?.(false, true, progress);
-    } else if (x < -threshold) {
-      newDirection = "prev";
-
-      const progress = Math.min(
-        (Date.now() - lastTransitionTimeRef.current) / HOLD_DURATION,
-        1,
-      );
-
-      onEdgeChange?.(true, false, progress);
-    } else {
-      newDirection = null;
-      onEdgeChange?.(false, false, 0);
-      wasInEdgeZoneRef.current = false;
-    }
-
-    if (newDirection === null && lastDirectionRef.current !== null) {
-      clearTimers();
-    }
-
-    if (newDirection) {
-      const currentTime = Date.now();
-
-      const timeSinceLastTransition =
-        currentTime - lastTransitionTimeRef.current;
-
-      if (timeSinceLastTransition > HOLD_DURATION && !edgeTimeoutRef.current) {
-        edgeTimeoutRef.current = window.setTimeout(() => {
-          onDayChange(newDirection);
-          lastTransitionTimeRef.current = Date.now();
-          edgeTimeoutRef.current = null;
-        }, 0);
-      }
-    }
-
-    lastDirectionRef.current = newDirection;
-    rafRef.current = requestAnimationFrame(checkPosition);
-  };
-
-  useDndMonitor({
-    onDragStart: () => {
-      lastTransitionTimeRef.current = Date.now();
-      lastDeltaRef.current = { x: 0 };
-      lastDirectionRef.current = null;
-      wasInEdgeZoneRef.current = false;
-      clearTimers();
-      rafRef.current = requestAnimationFrame(checkPosition);
-    },
-    onDragMove: (event: DragMoveEvent) => {
-      lastDeltaRef.current = event.delta;
-    },
-    onDragEnd: () => {
-      clearTimers();
-      lastDeltaRef.current = { x: 0 };
-      lastDirectionRef.current = null;
-      wasInEdgeZoneRef.current = false;
-      onEdgeChange?.(false, false, 0);
-    },
-    onDragCancel: () => {
-      clearTimers();
-      lastDeltaRef.current = { x: 0 };
-      lastDirectionRef.current = null;
-      wasInEdgeZoneRef.current = false;
-      onEdgeChange?.(false, false, 0);
-    },
-  });
-
-  useEffect(
-    () => () => {
-      clearTimers();
-    },
-    [],
-  );
-
-  return null;
-};
+import { DayDragMonitor } from "@/components/DayDragMonitor";
+import { DayEventCard } from "@/components/DayEventCard";
+import { DayHeader } from "@/components/DayHeader";
+import { DayNavigation } from "@/components/DayNavigation";
+import { useAllEvents } from "@/hooks/api/useEvents";
+import { useUpdateEventDate } from "@/hooks/api/useUpdateEventDate";
+import { useSwipeNavigation } from "@/hooks/useSwipeNavigation";
+import type { Event } from "@/models";
 
 export const DailyView = () => {
   const [activeDay, setActiveDay] = useState(format(new Date(), "yyyy-MM-dd"));
@@ -263,7 +132,7 @@ export const DailyView = () => {
       onDragStart={handleDragStart}
       sensors={sensors}
     >
-      <DragMonitor
+      <DayDragMonitor
         onDayChange={handleDayChange}
         onEdgeChange={handleEdgeChange}
       />
@@ -384,7 +253,7 @@ export const DailyView = () => {
       ) : null}
 
       {isNearRightEdge ? (
-        <div className="fixed h-full min-h-[calc(100dvh_-_160px)] right-0 top-0 w-[100px] bg-gradient-to-l h-screen from-blue-500/40 to-transparent z-[100] flex items-start pt-[195px] justify-end">
+        <div className="fixed min-h-[calc(100dvh_-_160px)] right-0 top-0 w-[100px] bg-gradient-to-l h-screen from-blue-500/40 to-transparent z-[100] flex items-start pt-[195px] justify-end">
           <div className="mr-4 relative">
             <div className="relative z-10">
               <div className="bg-blue-500 rounded-full p-2 text-white relative">
