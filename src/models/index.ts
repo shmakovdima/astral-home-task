@@ -6,7 +6,6 @@ export type Event = {
   timestamp: string;
   duration: number;
   location: string;
-  className?: string;
 };
 
 export type EventsByDate = {
