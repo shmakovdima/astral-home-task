@@ -103,8 +103,6 @@ export const DayEventCard = memo(
 
     const formattedDuration = formatDurationTime(duration);
 
-    console.log("isInitialRender", isInitialRender);
-
     return (
       <div className="relative">
         <div
