@@ -157,6 +157,7 @@ export const DailyView = () => {
   const [draggedHeight, setDraggedHeight] = useState<number | null>(null);
   const [isNearLeftEdge, setIsNearLeftEdge] = useState(false);
   const [isNearRightEdge, setIsNearRightEdge] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const dragOverlayRef = useRef<HTMLDivElement>(null);
   const { data: eventsByDate } = useAllEvents();
   const { mutate: updateEventDate } = useUpdateEventDate();
@@ -211,6 +212,7 @@ export const DailyView = () => {
 
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
+    setIsDragging(true);
 
     const draggedEvent = eventsByDate?.[activeDay]?.find(
       (e) => e.id === active.data.current?.id,
@@ -239,6 +241,7 @@ export const DailyView = () => {
     setActiveEvent(null);
     setDraggedHeight(null);
     originalEventDateRef.current = null;
+    setIsDragging(false);
   };
 
   const dayEvents = eventsByDate?.[activeDay] || [];
@@ -309,7 +312,11 @@ export const DailyView = () => {
               </div>
             )}
             {dayEvents.map((event: Event) => (
-              <DayEventCard key={event.id} {...event} />
+              <DayEventCard
+                key={event.id}
+                {...event}
+                disabledAnimation={isDragging}
+              />
             ))}
           </div>
         </div>
