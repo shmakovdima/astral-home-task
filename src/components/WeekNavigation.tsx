@@ -18,7 +18,7 @@ export const WeekNavigation = ({
   onNextWeek,
   onPrevWeek,
 }: Props) => (
-  <div className="bg-gradient-to-r from-blue-500 to-purple-500 py-6 px-10 text-white overflow-hidden">
+  <div className="bg-gradient-to-r from-blue-500 to-purple-500 py-6 px-12 text-white overflow-hidden">
     <WeekHeader
       onNextWeek={onNextWeek}
       onPrevWeek={onPrevWeek}
