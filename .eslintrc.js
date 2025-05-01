@@ -225,7 +225,6 @@ module.exports = {
     ],
     "react/jsx-no-constructed-context-values": "error",
     "react/jsx-no-duplicate-props": "error",
-    "react/jsx-no-leaked-render": "error",
     "react/jsx-no-undef": [2, { allowGlobals: true }],
     "react/jsx-no-useless-fragment": "error",
     "react/jsx-pascal-case": "error",

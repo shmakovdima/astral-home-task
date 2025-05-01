@@ -13,6 +13,7 @@ import {
 
 import { WeekDropZone } from "@/components/WeekDropZone";
 import { WeekEventCard } from "@/components/WeekEventCard";
+import { WeeklyEdgeIndicator } from "@/components/WeeklyEdgeIndicator";
 import { WeekNavigation } from "@/components/WeekNavigation";
 import { cnTwMerge } from "@/helpers/cnTwMerge";
 import { useAllEvents } from "@/hooks/api/useEvents";
@@ -448,127 +449,18 @@ export const WeeklyView = () => {
                 );
               })}
             </div>
-            {isDragging && isNearLeftEdge ? (
-              <div className="fixed left-0 top-0 w-[100px] bg-gradient-to-r h-screen min-h-[calc(100dvh_-_180px)] from-blue-500/40 to-transparent z-[100] flex items-end pb-[60px] justify-start">
-                <div className="ml-4 relative">
-                  <div className="relative z-10">
-                    <div className="bg-blue-500 rounded-full p-2 text-white relative">
-                      <svg
-                        className="absolute top-0 left-0 -rotate-90"
-                        height="40"
-                        width="40"
-                      >
-                        <circle
-                          cx="20"
-                          cy="20"
-                          fill="none"
-                          r="19"
-                          stroke="white"
-                          strokeWidth="2"
-                        />
-                        <circle
-                          cx="20"
-                          cy="20"
-                          fill="none"
-                          r="19"
-                          stroke="url(#gradient)"
-                          strokeDasharray="120 120"
-                          strokeDashoffset={120 - edgeProgress * 120}
-                          strokeWidth="2"
-                        />
-                        <defs>
-                          <linearGradient
-                            gradientUnits="userSpaceOnUse"
-                            id="gradient"
-                            x1="20"
-                            x2="20"
-                            y1="0"
-                            y2="40"
-                          >
-                            <stop offset="0%" stopColor="#8B5CF6" />
-                            <stop offset="100%" stopColor="#3B82F6" />
-                          </linearGradient>
-                        </defs>
-                      </svg>
-                      <svg
-                        className="w-6 h-6 relative z-10"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          d="M15 19l-7-7 7-7"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                        />
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ) : null}
-
-            {isDragging && isNearRightEdge ? (
-              <div className="fixed right-0 top-0 w-[100px] bg-gradient-to-l min-h-[calc(100dvh_-_180px)] h-screen from-blue-500/40 to-transparent z-[100] flex items-end pb-[60px] justify-end">
-                <div className="mr-4 relative">
-                  <div className="relative z-10">
-                    <div className="bg-blue-500 rounded-full p-2 text-white relative">
-                      <svg
-                        className="absolute top-0 left-0 -rotate-90"
-                        height="40"
-                        width="40"
-                      >
-                        <circle
-                          cx="20"
-                          cy="20"
-                          fill="none"
-                          r="19"
-                          stroke="white"
-                          strokeWidth="2"
-                        />
-                        <circle
-                          cx="20"
-                          cy="20"
-                          fill="none"
-                          r="19"
-                          stroke="url(#gradient)"
-                          strokeDasharray="120 120"
-                          strokeDashoffset={120 - edgeProgress * 120}
-                          strokeWidth="2"
-                        />
-                        <defs>
-                          <linearGradient
-                            gradientUnits="userSpaceOnUse"
-                            id="gradient"
-                            x1="20"
-                            x2="20"
-                            y1="0"
-                            y2="40"
-                          >
-                            <stop offset="0%" stopColor="#8B5CF6" />
-                            <stop offset="100%" stopColor="#3B82F6" />
-                          </linearGradient>
-                        </defs>
-                      </svg>
-                      <svg
-                        className="w-6 h-6 relative z-10"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          d="M9 5l7 7-7 7"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                        />
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ) : null}
+            <div className="relative">
+              <WeeklyEdgeIndicator
+                edgeProgress={edgeProgress}
+                isVisible={isDragging && isNearLeftEdge}
+                position="left"
+              />
+              <WeeklyEdgeIndicator
+                edgeProgress={edgeProgress}
+                isVisible={isDragging && isNearRightEdge}
+                position="right"
+              />
+            </div>
           </WeekDropZone>
         </div>
       </div>

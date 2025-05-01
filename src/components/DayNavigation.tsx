@@ -42,6 +42,7 @@ export const DayNavigation = ({ activeDay, setActiveDay }: Props) => {
 
     setIsAnimating(true);
     const selectedDate = days[index].date;
+
     setActiveDay(formatDate(selectedDate));
 
     setTimeout(() => {
