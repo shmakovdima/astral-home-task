@@ -18,24 +18,18 @@ export const metadata = {
   description: "Astral Home Task Application",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <html lang="en">
-      <body className={roboto.className}>
-        <YandexMetricaWrapper>
-          <ReactQueryProvider>
-            <DnDProvider>
-              <ToastProvider>
-                {children}
-              </ToastProvider>
-            </DnDProvider>
-          </ReactQueryProvider>
-        </YandexMetricaWrapper>
-      </body>
-    </html>
-  );
-} 
+const RootLayout = ({ children }: { children: React.ReactNode }) => (
+  <html lang="en">
+    <body className={roboto.className}>
+      <YandexMetricaWrapper>
+        <ReactQueryProvider>
+          <DnDProvider>
+            <ToastProvider>{children}</ToastProvider>
+          </DnDProvider>
+        </ReactQueryProvider>
+      </YandexMetricaWrapper>
+    </body>
+  </html>
+);
+
+export default RootLayout;

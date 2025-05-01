@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
 import { useEffect, useState } from "react";
 
-export default function Template({ children }: { children: React.ReactNode }) {
+const Template = ({ children }: { children: React.ReactNode }) => {
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
@@ -27,5 +27,7 @@ export default function Template({ children }: { children: React.ReactNode }) {
     return null;
   }
 
-  return <>{children}</>;
-} 
+  return children;
+};
+
+export default Template;
