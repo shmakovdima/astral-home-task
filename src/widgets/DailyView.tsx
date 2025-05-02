@@ -18,6 +18,7 @@ import { DayDragMonitor } from "@/components/DayDragMonitor";
 import { DayEventCard } from "@/components/DayEventCard";
 import { DayHeader } from "@/components/DayHeader";
 import { DayNavigation } from "@/components/DayNavigation";
+import { DropEventPlaceholder } from "@/components/DropEventPlaceholder";
 import { useAllEvents } from "@/hooks/api/useEvents";
 import { useUpdateEventDate } from "@/hooks/api/useUpdateEventDate";
 import { useSwipeNavigation } from "@/hooks/useSwipeNavigation";
@@ -156,16 +157,7 @@ export const DailyView = () => {
           <DayHeader date={activeDay} />
           <div className="grid grid-cols-1 gap-4">
             {showDropPlaceholder ? (
-              <div
-                className="rounded-lg border-2 border-dashed border-violet-200 bg-violet-50/50 flex items-center justify-center"
-                style={{
-                  minHeight: draggedHeight ? `${draggedHeight}px` : "226px",
-                }}
-              >
-                <span className="text-sm font-medium text-violet-500">
-                  Drop event to this day
-                </span>
-              </div>
+              <DropEventPlaceholder minHeight={draggedHeight || 226} />
             ) : null}
             {!showDropPlaceholder && dayEvents.length === 0 && (
               <div className="text-center text-gray-500 py-8">
