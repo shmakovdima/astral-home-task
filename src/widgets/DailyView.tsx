@@ -11,7 +11,7 @@ import {
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import { addDays, format, isSameDay } from "date-fns";
+import { addDays, format, isSameDay, parseISO } from "date-fns";
 
 import { DailyEdgeIndicator } from "@/components/DailyEdgeIndicator";
 import { DayDragMonitor } from "@/components/DayDragMonitor";
@@ -70,8 +70,9 @@ export const DailyView = () => {
 
     setActiveDay((currentActiveDay) => {
       const daysToMove = direction === "prev" ? -1 : 1;
-      const baseDate = new Date(currentActiveDay);
+      const baseDate = parseISO(currentActiveDay);
       const newDate = addDays(baseDate, daysToMove);
+
       return format(newDate, "yyyy-MM-dd");
     });
 
@@ -124,7 +125,7 @@ export const DailyView = () => {
   };
 
   const dayEvents = eventsByDate?.[activeDay] || [];
-  const isCurrentDay = isSameDay(new Date(activeDay), new Date());
+  const isCurrentDay = isSameDay(parseISO(activeDay), new Date());
 
   const showDropPlaceholder =
     !!activeEvent && originalEventDateRef.current !== activeDay;

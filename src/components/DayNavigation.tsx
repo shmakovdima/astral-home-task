@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { addDays, format, startOfDay } from "date-fns";
+import { addDays, format, parseISO, startOfDay } from "date-fns";
 import { AnimatePresence, motion } from "framer-motion";
 
 import { cnTwMerge } from "@/helpers/cnTwMerge";
@@ -22,7 +22,7 @@ export const DayNavigation = ({ activeDay, setActiveDay }: Props) => {
   const formatDate = (date: Date): string => format(date, "yyyy-MM-dd");
 
   useEffect(() => {
-    const activeDate = activeDay ? new Date(activeDay) : new Date();
+    const activeDate = activeDay ? parseISO(activeDay) : new Date();
 
     const weekDays = Array.from({ length: 13 }, (_, i) => {
       const day = addDays(startOfDay(activeDate), i - 6);
