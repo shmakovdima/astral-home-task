@@ -8,7 +8,7 @@ const today = new Date();
 const tomorrow = addDays(today, 1);
 const dayAfterTomorrow = addDays(today, 2);
 
-const events: EventsByDate = {
+const events = {
   [format(dayAfterTomorrow, "yyyy-MM-dd")]: [
     {
       id: "523e4567-e89b-12d3-a456-426614174004",
@@ -65,7 +65,7 @@ const events: EventsByDate = {
       location: "Cafeteria",
     },
   ],
-};
+} satisfies EventsByDate;
 
 export const handlers = [
   http.get("/api/events", () => {

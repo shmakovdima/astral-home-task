@@ -1,8 +1,7 @@
 import { useEffect, useRef } from "react";
 import { type DragMoveEvent, useDndMonitor } from "@dnd-kit/core";
 
-const EDGE_THRESHOLD = 0.2;
-const HOLD_DURATION = 1500;
+import { EDGE_THRESHOLD, HOLD_DURATION } from "@/constants";
 
 export const DayDragMonitor = ({
   onDayChange,

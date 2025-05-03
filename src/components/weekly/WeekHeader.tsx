@@ -56,15 +56,15 @@ export const WeekHeader = ({
   };
 
   return (
-    <div className="flex items-center justify-between mb-4">
+    <div className="mb-4 flex items-center justify-between">
       <motion.button
-        className="p-2 rounded-lg hover:bg-white/10 transition-colors"
+        className="rounded-lg p-2 transition-colors hover:bg-white/10"
         onClick={handlePrevWeek}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
       >
         <svg
-          className="w-6 h-6"
+          className="h-6 w-6"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -78,7 +78,7 @@ export const WeekHeader = ({
         </svg>
       </motion.button>
 
-      <div className="text-center w-68 overflow-hidden">
+      <div className="w-68 overflow-hidden text-center">
         <AnimatePresence custom={direction} initial={false} mode="wait">
           <motion.div
             animate="center"
@@ -103,13 +103,13 @@ export const WeekHeader = ({
       </div>
 
       <motion.button
-        className="p-2 rounded-lg hover:bg-white/10 transition-colors"
+        className="rounded-lg p-2 transition-colors hover:bg-white/10"
         onClick={handleNextWeek}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
       >
         <svg
-          className="w-6 h-6"
+          className="h-6 w-6"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"

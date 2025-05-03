@@ -1,13 +1,7 @@
-export type Event = {
-  id: string;
-  title: string;
-  description: string;
-  imageUrl: string;
-  timestamp: string;
-  duration: number;
-  location: string;
-};
+import { type z } from "zod";
 
-export type EventsByDate = {
-  [date: string]: Event[];
-};
+import { type eventSchema, type eventsResponseSchema } from "@/lib/validations";
+
+export type Event = z.infer<typeof eventSchema>;
+
+export type EventsByDate = z.infer<typeof eventsResponseSchema>;

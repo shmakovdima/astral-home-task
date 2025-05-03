@@ -169,11 +169,15 @@ module.exports = {
         patterns: [
           {
             group: ["classnames"],
-            message: "Use `cnTwMerge` from `@utils/cnTwMerge`",
+            message: "Use `cnTwMerge` from `@/helpers/cnTwMerge`",
           },
           {
             group: ["tailwind-merge"],
-            message: "Use `cnTwMerge` from `@utils/cnTwMerge`",
+            message: "Use `cnTwMerge` from `@/helpers/cnTwMerge`",
+          },
+          {
+            group: ["clsx"],
+            message: "Use `cnTwMerge` from `@/helpers/cnTwMerge`",
           },
         ],
       },
@@ -253,7 +257,7 @@ module.exports = {
       },
     ],
     "readable-tailwind/multiline": "off",
-    "readable-tailwind/sort-classes": "off",
+    "readable-tailwind/sort-classes": "error",
     semi: ["error", "always"],
     "simple-import-sort/exports": "error",
     "simple-import-sort/imports": "error",

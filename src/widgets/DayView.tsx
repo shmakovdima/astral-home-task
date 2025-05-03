@@ -13,26 +13,27 @@ import {
 } from "@dnd-kit/core";
 import { addDays, format, isSameDay, parseISO } from "date-fns";
 
-import { DailyEdgeIndicator } from "@/components/DailyEdgeIndicator";
-import { DayDragMonitor } from "@/components/DayDragMonitor";
-import { DayEventCard } from "@/components/DayEventCard";
-import { DayHeader } from "@/components/DayHeader";
-import { DayNavigation } from "@/components/DayNavigation";
-import { DropEventPlaceholder } from "@/components/DropEventPlaceholder";
+import { DayDragMonitor } from "@/components/daily/DayDragMonitor";
+import { DayEventCard } from "@/components/daily/DayEventCard";
+import { DayHeader } from "@/components/daily/DayHeader";
+import { DayNavigation } from "@/components/daily/DayNavigation";
+import { DropEventPlaceholder } from "@/components/shared/DropEventPlaceholder";
+import { EdgeIndicator } from "@/components/shared/EdgeIndicator";
 import { useAllEvents } from "@/hooks/api/useEvents";
 import { useUpdateEventDate } from "@/hooks/api/useUpdateEventDate";
 import { useSwipeNavigation } from "@/hooks/useSwipeNavigation";
 import type { Event } from "@/models";
 import { useToastContext } from "@/providers/ToastProvider";
 
-export const DailyView = () => {
+export const DayView = () => {
   const { showToast } = useToastContext();
   const [activeDay, setActiveDay] = useState(format(new Date(), "yyyy-MM-dd"));
   const [activeEvent, setActiveEvent] = useState<Event | null>(null);
   const [draggedHeight, setDraggedHeight] = useState<number | null>(null);
   const [isNearLeftEdge, setIsNearLeftEdge] = useState(false);
   const [isNearRightEdge, setIsNearRightEdge] = useState(false);
-  const dragOverlayRef = useRef<HTMLDivElement>(null);
+  const lastChangeRef = useRef<number>(0);
+  const originalEventDateRef = useRef<string | null>(null);
   const { data: eventsByDate } = useAllEvents();
 
   const { mutate: updateEventDate } = useUpdateEventDate({
@@ -43,8 +44,6 @@ export const DailyView = () => {
     },
   });
 
-  const lastChangeRef = useRef<number>(0);
-  const originalEventDateRef = useRef<string | null>(null);
   const [edgeProgress, setEdgeProgress] = useState(0);
 
   const mouseSensor = useSensor(MouseSensor, {
@@ -129,7 +128,7 @@ export const DailyView = () => {
   const isCurrentDay = isSameDay(parseISO(activeDay), new Date());
 
   const showDropPlaceholder =
-    !!activeEvent && originalEventDateRef.current !== activeDay;
+    !!activeEvent && (originalEventDateRef.current || "") !== activeDay;
 
   const handleEdgeChange = useCallback(
     (isLeft: boolean, isRight: boolean, progress: number = 0) => {
@@ -142,6 +141,7 @@ export const DailyView = () => {
 
   return (
     <DndContext
+      id="daily-view-dnd"
       onDragEnd={handleDragEnd}
       onDragMove={handleDragMove}
       onDragStart={handleDragStart}
@@ -151,7 +151,7 @@ export const DailyView = () => {
         onDayChange={handleDayChange}
         onEdgeChange={handleEdgeChange}
       />
-      <div className="flex flex-col gap-4 min-h-dvh relative pb-safe" ref={ref}>
+      <div className="pb-safe relative flex min-h-dvh flex-col gap-4" ref={ref}>
         <DayNavigation activeDay={activeDay} setActiveDay={setActiveDay} />
         <div className="flex flex-col gap-4 p-4">
           <DayHeader date={activeDay} />
@@ -160,10 +160,10 @@ export const DailyView = () => {
               <DropEventPlaceholder minHeight={draggedHeight || 226} />
             ) : null}
             {!showDropPlaceholder && dayEvents.length === 0 && (
-              <div className="text-center text-gray-500 py-8">
+              <div className="py-8 text-center text-gray-500">
                 <div className="flex flex-col items-center gap-4">
                   <svg
-                    className="w-8 h-8 text-gray-400"
+                    className="h-8 w-8 text-gray-400"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -195,22 +195,24 @@ export const DailyView = () => {
 
         <DragOverlay dropAnimation={null} modifiers={[]}>
           {activeEvent ? (
-            <div className="shadow-lg opacity-50" ref={dragOverlayRef}>
+            <div className="opacity-50 shadow-lg">
               <DayEventCard {...activeEvent} disabledAnimation />
             </div>
           ) : null}
         </DragOverlay>
       </div>
       <div className="relative">
-        <DailyEdgeIndicator
+        <EdgeIndicator
           edgeProgress={edgeProgress}
           isVisible={isNearLeftEdge}
           position="left"
+          type="daily"
         />
-        <DailyEdgeIndicator
+        <EdgeIndicator
           edgeProgress={edgeProgress}
           isVisible={isNearRightEdge}
           position="right"
+          type="daily"
         />
       </div>
     </DndContext>

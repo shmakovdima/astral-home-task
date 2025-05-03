@@ -1,13 +1,13 @@
-import { DailyView } from "@/widgets/DailyView";
-import { WeeklyView } from "@/widgets/WeeklyView";
+import { DayView } from "@/widgets/DayView";
+import { WeekView } from "@/widgets/WeekView";
 
 const Home = () => (
   <div>
-    <div className="block md:hidden overflow-hidden">
-      <DailyView />
+    <div className="block overflow-hidden md:hidden">
+      <DayView />
     </div>
     <div className="hidden md:block">
-      <WeeklyView />
+      <WeekView />
     </div>
   </div>
 );

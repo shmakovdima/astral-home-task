@@ -1,27 +1,47 @@
 import { memo } from "react";
 
+import { cnTwMerge } from "@/helpers/cnTwMerge";
+
 type Props = {
   isVisible: boolean;
   edgeProgress: number;
   position: "left" | "right";
+  type: "weekly" | "daily";
 };
 
-export const WeeklyEdgeIndicator = memo(
-  ({ isVisible, edgeProgress, position }: Props) => {
+export const EdgeIndicator = memo(
+  ({ isVisible, edgeProgress, position, type }: Props) => {
     if (!isVisible) return null;
 
     const isLeft = position === "left";
-    const gradientDirection = isLeft ? "to-r" : "to-l";
+    const gradientDirection = isLeft ? "bg-gradient-to-r" : "bg-gradient-to-l";
 
-    const arrowPath = isLeft ? "M15 19l-7-7 7-7" : "M9 5l7 7-7 7";
+    const getArrowPath = () => {
+      if (isLeft) {
+        return type === "weekly" ? "M15 19l-7-7 7-7" : "M19 12H5m7 7l-7-7 7-7";
+      }
+
+      return type === "weekly" ? "M9 5l7 7-7 7" : "M5 12h14m-7-7l7 7-7 7";
+    };
+
+    const arrowPath = getArrowPath();
+    const paddingTop = type === "daily" ? "pt-[195px]" : "pb-[60px]";
+    const alignItems = type === "daily" ? "items-start" : "items-end";
 
     return (
       <div
-        className={`fixed ${isLeft ? "left-0" : "right-0"} top-0 w-[100px] bg-gradient-${gradientDirection} h-screen min-h-[calc(100dvh_-_180px)] from-blue-500/40 to-transparent z-[100] flex items-end pb-[60px] ${isLeft ? "justify-start" : "justify-end"}`}
+        className={cnTwMerge(
+          "fixed top-0 w-[100px] h-screen min-h-[calc(100dvh_-_180px)] from-blue-500/40 to-transparent z-[100] flex",
+          isLeft ? "justify-start" : "justify-end",
+          isLeft ? "left-0" : "right-0",
+          gradientDirection,
+          alignItems,
+          paddingTop,
+        )}
       >
-        <div className={`${isLeft ? "ml-4" : "mr-4"} relative`}>
+        <div className={cnTwMerge("relative", isLeft ? "ml-4" : "mr-4")}>
           <div className="relative z-10">
-            <div className="bg-blue-500 rounded-full p-2 text-white relative">
+            <div className="relative rounded-full bg-blue-500 p-2 text-white">
               <svg
                 className="absolute top-0 left-0 -rotate-90"
                 height="40"
@@ -60,7 +80,7 @@ export const WeeklyEdgeIndicator = memo(
                 </defs>
               </svg>
               <svg
-                className="w-6 h-6 relative z-10"
+                className="relative z-10 h-6 w-6"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -80,4 +100,4 @@ export const WeeklyEdgeIndicator = memo(
   },
 );
 
-WeeklyEdgeIndicator.displayName = "WeeklyEdgeIndicator";
+EdgeIndicator.displayName = "EdgeIndicator";

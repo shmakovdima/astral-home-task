@@ -50,7 +50,7 @@ export const ToastProvider = ({ children }: Props) => {
     <ToastContext.Provider value={contextValue}>
       {children}
       {message ? (
-        <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg z-[9999]">
+        <div className="fixed bottom-4 left-1/2 z-[9999] -translate-x-1/2 transform rounded-lg bg-red-500 px-4 py-2 text-white shadow-lg">
           {message}
         </div>
       ) : null}

@@ -32,7 +32,7 @@ export const useSwipeNavigation = ({
   const handleTouchStart = useCallback(
     (event: TouchEvent) => {
       if (isDisabled) return;
-      if (document.querySelector(".disable-swipe")) return;
+      if (document.querySelector(".event-card-expanded")) return;
       touchStartX.current = event.touches[0].clientX;
       touchStartY.current = event.touches[0].clientY;
       isSwiping.current = true;
@@ -49,7 +49,7 @@ export const useSwipeNavigation = ({
         !touchStartY.current
       )
         return;
-      if (document.querySelector(".disable-swipe")) return;
+      if (document.querySelector(".event-card-expanded")) return;
 
       const touchEndX = event.touches[0].clientX;
       const touchEndY = event.touches[0].clientY;
@@ -75,7 +75,7 @@ export const useSwipeNavigation = ({
         !touchStartY.current
       )
         return;
-      if (document.querySelector(".disable-swipe")) return;
+      if (document.querySelector(".event-card-expanded")) return;
 
       const touchEndX = event.changedTouches[0].clientX;
       const touchEndY = event.changedTouches[0].clientY;

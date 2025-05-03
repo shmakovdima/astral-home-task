@@ -1,6 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import {
   addDays,
   addWeeks,
@@ -11,11 +17,11 @@ import {
   startOfWeek,
 } from "date-fns";
 
-import { DropEventPlaceholder } from "@/components/DropEventPlaceholder";
-import { WeekDropZone } from "@/components/WeekDropZone";
-import { WeekEventCard } from "@/components/WeekEventCard";
-import { WeeklyEdgeIndicator } from "@/components/WeeklyEdgeIndicator";
-import { WeekNavigation } from "@/components/WeekNavigation";
+import { DropEventPlaceholder } from "@/components/shared/DropEventPlaceholder";
+import { EdgeIndicator } from "@/components/shared/EdgeIndicator";
+import { WeekDropZone } from "@/components/weekly/WeekDropZone";
+import { WeekEventCard } from "@/components/weekly/WeekEventCard";
+import { WeekNavigation } from "@/components/weekly/WeekNavigation";
 import { cnTwMerge } from "@/helpers/cnTwMerge";
 import { useAllEvents } from "@/hooks/api/useEvents";
 import { useUpdateEventDate } from "@/hooks/api/useUpdateEventDate";
@@ -25,7 +31,13 @@ type WeekDropZoneRef = {
   resetStates: () => void;
 };
 
-export const WeeklyView = () => {
+export const WeekView = () => {
+  const generateWeeks = useCallback((currentDate: Date) => {
+    const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
+
+    return Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
+  }, []);
+
   const { showToast } = useToastContext();
   const { data: eventsByDate } = useAllEvents();
 
@@ -37,8 +49,12 @@ export const WeeklyView = () => {
     },
   });
 
-  const [currentWeek, setCurrentWeek] = useState<Date[]>([]);
   const [currentDate, setCurrentDate] = useState(new Date());
+
+  const [currentWeek, setCurrentWeek] = useState<Date[]>(
+    generateWeeks(currentDate),
+  );
+
   const [draggedEventId, setDraggedEventId] = useState<string | null>(null);
   const [isDayChanged, setIsDayChanged] = useState(false);
   const [startDay, setStartDay] = useState<string | null>(null);
@@ -59,15 +75,9 @@ export const WeeklyView = () => {
 
   const weekDropZoneRef = useRef<WeekDropZoneRef | null>(null);
 
-  useEffect(() => {
-    const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
-
-    const weekDates = Array.from({ length: 7 }, (_, i) =>
-      addDays(weekStart, i),
-    );
-
-    setCurrentWeek(weekDates);
-  }, [currentDate]);
+  useLayoutEffect(() => {
+    setCurrentWeek(generateWeeks(currentDate));
+  }, [currentDate, generateWeeks]);
 
   const handleScroll = useCallback(() => {
     if (!scrollContainerRef.current || isDragging) return;
@@ -350,7 +360,7 @@ export const WeeklyView = () => {
   }, [handleEdgeChange]);
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex h-full flex-col">
       <WeekNavigation
         currentWeek={currentWeek}
         onNextWeek={handleNextWeek}
@@ -359,7 +369,7 @@ export const WeeklyView = () => {
         weekStart={weekStart}
       />
 
-      <div className="flex-1 overflow-hidden relative">
+      <div className="relative flex-1 overflow-hidden">
         <div className="h-full overflow-x-auto" ref={scrollContainerRef}>
           <WeekDropZone
             onDayChange={handleDayChange}
@@ -379,7 +389,7 @@ export const WeeklyView = () => {
             onWeekChangeProgress={handleWeekChangeProgress}
             ref={weekDropZoneRef}
           >
-            <div className="grid px-12 grid-cols-7 gap-0 overflow-hidden flex-1 h-full">
+            <div className="grid h-full flex-1 grid-cols-7 gap-0 overflow-hidden px-12">
               {currentWeek.map((date, index) => {
                 const events = getEventsForDay(date);
                 const isLastDay = index === currentWeek.length - 1;
@@ -425,15 +435,17 @@ export const WeeklyView = () => {
               })}
             </div>
             <div className="relative">
-              <WeeklyEdgeIndicator
+              <EdgeIndicator
                 edgeProgress={edgeProgress}
-                isVisible={isDragging && isNearLeftEdge}
+                isVisible={isNearLeftEdge}
                 position="left"
+                type="weekly"
               />
-              <WeeklyEdgeIndicator
+              <EdgeIndicator
                 edgeProgress={edgeProgress}
-                isVisible={isDragging && isNearRightEdge}
+                isVisible={isNearRightEdge}
                 position="right"
+                type="weekly"
               />
             </div>
           </WeekDropZone>

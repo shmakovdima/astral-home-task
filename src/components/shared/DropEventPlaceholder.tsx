@@ -4,7 +4,7 @@ type Props = {
 
 export const DropEventPlaceholder = ({ minHeight = 140 }: Props) => (
   <div
-    className="text-center text-gray-500 border-2 border-dashed border-blue-300 rounded-lg bg-blue-50/70 flex items-center justify-center"
+    className="flex items-center justify-center rounded-lg border-2 border-dashed border-blue-300 bg-blue-50/70 text-center text-gray-500"
     style={{
       minHeight: `${minHeight}px`,
       padding: "0.5rem",
@@ -12,7 +12,7 @@ export const DropEventPlaceholder = ({ minHeight = 140 }: Props) => (
   >
     <div className="flex flex-col items-center gap-2">
       <svg
-        className="w-6 h-6 text-blue-500"
+        className="h-6 w-6 text-blue-500"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -24,7 +24,7 @@ export const DropEventPlaceholder = ({ minHeight = 140 }: Props) => (
           strokeWidth={2}
         />
       </svg>
-      <span className="text-xs font-medium text-blue-600">
+      <span className="text-xs font-medium text-blue-600 select-none">
         Drop event to this day
       </span>
     </div>

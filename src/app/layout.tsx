@@ -1,9 +1,11 @@
 import { Roboto } from "next/font/google";
+import Metrika from "next-metrika";
+import { dehydrate } from "@tanstack/react-query";
 
+import { fetchEvents } from "@/lib/server";
 import { DnDProvider } from "@/providers/DnDProvider";
 import { ReactQueryProvider } from "@/providers/ReactQueryProvider";
 import { ToastProvider } from "@/providers/ToastProvider";
-import { YandexMetricaWrapper } from "@/providers/YandexMetricaWrapper";
 
 import "@/styles/globals.css";
 
@@ -18,18 +20,22 @@ export const metadata = {
   description: "Astral Home Task Application",
 };
 
-const RootLayout = ({ children }: { children: React.ReactNode }) => (
-  <html lang="en">
-    <body className={roboto.className}>
-      <YandexMetricaWrapper>
-        <ReactQueryProvider>
+const RootLayout = async ({ children }: { children: React.ReactNode }) => {
+  const queryClient = await fetchEvents();
+  const dehydratedState = dehydrate(queryClient);
+
+  return (
+    <html lang="en">
+      <body className={roboto.className}>
+        <Metrika id={101466502} />
+        <ReactQueryProvider dehydratedState={dehydratedState}>
           <DnDProvider>
             <ToastProvider>{children}</ToastProvider>
           </DnDProvider>
         </ReactQueryProvider>
-      </YandexMetricaWrapper>
-    </body>
-  </html>
-);
+      </body>
+    </html>
+  );
+};
 
 export default RootLayout;

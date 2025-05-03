@@ -7,7 +7,8 @@ import {
 } from "react";
 import { useDrop } from "react-dnd";
 
-const WEEK_CHANGE_DELAY = 1500;
+import { HOLD_DURATION } from "@/constants";
+import { cnTwMerge } from "@/helpers/cnTwMerge";
 
 type Props = {
   children: React.ReactNode;
@@ -85,7 +86,7 @@ export const WeekDropZone = forwardRef(
           ) {
             startWeekChangeTimer(direction, clientX);
           }
-        }, WEEK_CHANGE_DELAY);
+        }, HOLD_DURATION);
       },
       [onWeekChange],
     );
@@ -116,7 +117,7 @@ export const WeekDropZone = forwardRef(
         if (!startTime) return;
 
         const elapsed = Date.now() - startTime;
-        const progress = Math.min(1, elapsed / WEEK_CHANGE_DELAY);
+        const progress = Math.min(1, elapsed / HOLD_DURATION);
         onWeekChangeProgress?.(progress);
 
         if (progress < 1) {
@@ -285,7 +286,10 @@ export const WeekDropZone = forwardRef(
 
     return (
       <div
-        className={`w-full h-full relative ${isOver ? "bg-blue-50/30" : ""}`}
+        className={cnTwMerge(
+          "relative h-full w-full",
+          isOver ? "bg-blue-50/30" : "",
+        )}
         ref={drop as unknown as React.RefObject<HTMLDivElement>}
       >
         {children}

@@ -1,6 +1,6 @@
 import { format, isToday } from "date-fns";
 
-import { WeekHeader } from "@/components/WeekHeader";
+import { WeekHeader } from "@/components/weekly/WeekHeader";
 import { cnTwMerge } from "@/helpers/cnTwMerge";
 
 type Props = {
@@ -18,7 +18,7 @@ export const WeekNavigation = ({
   onNextWeek,
   onPrevWeek,
 }: Props) => (
-  <div className="bg-gradient-to-r from-blue-500 to-purple-500 py-6 px-12 text-white overflow-hidden">
+  <div className="overflow-hidden bg-gradient-to-r from-blue-500 to-purple-500 px-12 py-6 text-white">
     <WeekHeader
       onNextWeek={onNextWeek}
       onPrevWeek={onPrevWeek}
@@ -38,7 +38,7 @@ export const WeekNavigation = ({
           key={format(date, "yyyy-MM-dd")}
         >
           <span className="text-sm">{format(date, "EEE")}</span>
-          <span className="text-xl font-bold mt-1">{date.getDate()}</span>
+          <span className="mt-1 text-xl font-bold">{date.getDate()}</span>
         </div>
       ))}
     </div>

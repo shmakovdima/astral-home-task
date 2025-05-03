@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useLayoutEffect, useState } from "react";
 import { addDays, format, parseISO, startOfDay } from "date-fns";
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -16,12 +16,7 @@ type Props = {
 };
 
 export const DayNavigation = ({ activeDay, setActiveDay }: Props) => {
-  const [days, setDays] = useState<DayInfo[]>([]);
-  const [isAnimating, setIsAnimating] = useState(false);
-
-  const formatDate = (date: Date): string => format(date, "yyyy-MM-dd");
-
-  useEffect(() => {
+  const generateWeeks = useCallback((activeDay?: string) => {
     const activeDate = activeDay ? parseISO(activeDay) : new Date();
 
     const weekDays = Array.from({ length: 13 }, (_, i) => {
@@ -34,8 +29,17 @@ export const DayNavigation = ({ activeDay, setActiveDay }: Props) => {
       };
     }) satisfies DayInfo[];
 
-    setDays(weekDays);
-  }, [activeDay]);
+    return weekDays;
+  }, []);
+
+  const [days, setDays] = useState<DayInfo[]>(generateWeeks);
+  const [isAnimating, setIsAnimating] = useState(false);
+
+  const formatDate = (date: Date): string => format(date, "yyyy-MM-dd");
+
+  useLayoutEffect(() => {
+    setDays(generateWeeks(activeDay));
+  }, [activeDay, generateWeeks]);
 
   const handleDayClick = (index: number) => {
     if (isAnimating) return;
@@ -72,14 +76,14 @@ export const DayNavigation = ({ activeDay, setActiveDay }: Props) => {
   };
 
   return (
-    <div className="bg-gradient-to-r from-blue-500 to-purple-500 p-6 text-white overflow-hidden">
-      <h1 className="text-2xl font-bold mb-4">Your Schedule</h1>
+    <div className="overflow-hidden bg-gradient-to-r from-blue-500 to-purple-500 p-6 text-white">
+      <h1 className="mb-4 text-2xl font-bold">Your Schedule</h1>
 
       <div className="relative w-full">
         <motion.div
           animate="visible"
-          className="flex justify-between w-full gap-2"
-          initial="hidden"
+          className="flex w-full justify-between gap-2"
+          initial={false}
           onAnimationComplete={() => setIsAnimating(false)}
           variants={containerVariants}
         >
@@ -91,7 +95,7 @@ export const DayNavigation = ({ activeDay, setActiveDay }: Props) => {
               return (
                 <motion.div
                   className={cnTwMerge(
-                    "flex flex-col items-center justify-center transition-colors duration-200 cursor-pointer py-2 px-3 rounded-lg w-[calc(100%/7)] min-w-0 h-16",
+                    "flex flex-col select-none items-center justify-center transition-colors duration-200 cursor-pointer py-2 px-3 rounded-lg w-[calc(100%/7)] min-w-0 h-16",
                     index === 6
                       ? "bg-gradient-to-br from-indigo-600 to-violet-600"
                       : "bg-gray-100/10 hover:bg-indigo-600/10",
@@ -110,7 +114,7 @@ export const DayNavigation = ({ activeDay, setActiveDay }: Props) => {
                   variants={dayVariants}
                 >
                   <span className="text-sm">{day.name}</span>
-                  <span className="text-xl font-bold mt-1">{day.number}</span>
+                  <span className="mt-1 text-xl font-bold">{day.number}</span>
                 </motion.div>
               );
             })}
